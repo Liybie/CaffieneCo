@@ -1,0 +1,57 @@
+{
+  "shopName": "Caffeine Co.",
+  "tagline": "Where Every Cup Tells a Story",
+  "description": "Welcome to Caffeine Co., your neighborhood coffee sanctuary. We craft exceptional coffee experiences in a warm, inviting atmosphere designed for connection, creativity, and comfort.",
+  "specialty": "Single-Origin Ethiopian Yirgacheffe — bright, floral notes with a silky body, roasted fresh daily.",
+  "hours": {
+    "weekdays": "Mon–Fri: 7:00 AM – 9:00 PM",
+    "weekends": "Sat–Sun: 8:00 AM – 10:00 PM"
+  },
+  "contact": {
+    "phone": "+1 (555) 867-5309",
+    "email": "hello@caffeineco.com",
+    "address": "42 Brew Street, Coffee District, CA 90210"
+  },
+  "pros": [
+    {
+      "label": "01",
+      "title": "Perfect for Studying",
+      "description": "Quiet zones with ample outlets and fast Wi-Fi make us a favorite among students."
+    },
+    {
+      "label": "02",
+      "title": "Remote Workspace",
+      "description": "Spacious tables, ergonomic seating, and a calm ambiance ideal for remote work."
+    },
+    {
+      "label": "03",
+      "title": "Community Hub",
+      "description": "Weekly open-mic nights and local art displays foster a vibrant community spirit."
+    },
+    {
+      "label": "04",
+      "title": "Sustainably Sourced",
+      "description": "Every bean is ethically sourced from fair-trade farms around the world."
+    },
+    {
+      "label": "05",
+      "title": "Expert Baristas",
+      "description": "Our certified baristas craft each drink with precision and passion."
+    },
+    {
+      "label": "06",
+      "title": "Curated Sound",
+      "description": "Hand-picked music sets the mood — from jazz mornings to lo-fi afternoons."
+    }
+  ],
+  "discountPercent": 20,
+  "discountMessage": "Welcome to the Caffeine Co. family! Enjoy {discount}% off your first visit.",
+  "mapEmbed": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3304.835223789012!2d-118.243683!3d34.052235!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c2c75ddc27da13%3A0xe22fdf6f254608f4!2sLos%20Angeles%2C%20CA!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus",
+  "heroImage": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1920&q=85",
+  "specialtyImage": "https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1200&q=85",
+  "galleryImages": [
+    "https://images.unsplash.com/photo-1559496417-e7f25cbba1aa?auto=format&fit=crop&w=1200&q=85",
+    "https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=800&q=85",
+    "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=800&q=85"
+  ]
+}

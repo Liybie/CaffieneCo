@@ -1,0 +1,89 @@
+[
+  {
+    "id": "c5cae078-2de3-4de9-ab24-fabe633d19c6",
+    "timestamp": "2026-07-07T14:02:29.056Z",
+    "level": "info",
+    "category": "admin",
+    "message": "Shop information updated.",
+    "fields": [
+      "discountPercent",
+      "discountMessage"
+    ]
+  },
+  {
+    "id": "fe90e7b5-6e07-4161-860f-80727f17dee2",
+    "timestamp": "2026-07-07T14:02:06.859Z",
+    "level": "info",
+    "category": "admin",
+    "message": "Shop information updated.",
+    "fields": [
+      "discountPercent",
+      "discountMessage"
+    ]
+  },
+  {
+    "id": "f8699c71-17db-48da-a1a5-695aa37ae2e0",
+    "timestamp": "2026-07-07T12:14:48.011Z",
+    "level": "info",
+    "category": "customer",
+    "message": "Duplicate discount request from idiankert@gmail.com"
+  },
+  {
+    "id": "89673b60-b26f-4372-80bd-ad97fbb2bffb",
+    "timestamp": "2026-07-07T11:17:41.623Z",
+    "level": "info",
+    "category": "customer",
+    "message": "Duplicate discount request from idiankert@gmail.com"
+  },
+  {
+    "id": "02a69bc0-35d8-410c-8c9c-ee016c9ff738",
+    "timestamp": "2026-07-07T11:14:11.069Z",
+    "level": "info",
+    "category": "customer",
+    "message": "New subscriber: paragatosliybie@gmail.com — code CAFFEINE5RGNW3 (20% off)"
+  },
+  {
+    "id": "a34253d8-2fc8-4faf-8872-d446921f880b",
+    "timestamp": "2026-07-07T11:14:11.013Z",
+    "level": "warn",
+    "category": "email",
+    "message": "Email not sent (SMTP not configured): Your 20% Welcome Discount — Caffeine Co.",
+    "to": "paragatosliybie@gmail.com"
+  },
+  {
+    "id": "d92af66f-70a9-4490-8b13-9c49631abb39",
+    "timestamp": "2026-07-07T11:13:43.324Z",
+    "level": "info",
+    "category": "customer",
+    "message": "New subscriber: idiankert@gmail.com — code CAFFEINELY5RT8 (20% off)"
+  },
+  {
+    "id": "61227522-5a2a-437c-87fb-9ea19df5feff",
+    "timestamp": "2026-07-07T11:13:43.277Z",
+    "level": "warn",
+    "category": "email",
+    "message": "Email not sent (SMTP not configured): Your 20% Welcome Discount — Caffeine Co.",
+    "to": "idiankert@gmail.com"
+  },
+  {
+    "id": "31612192-3fbe-4a3f-9777-5a2e5af44bcd",
+    "timestamp": "2026-07-07T11:13:18.593Z",
+    "level": "info",
+    "category": "auth",
+    "message": "Admin login successful: AlgoCoffee"
+  },
+  {
+    "id": "2495b265-7e41-4218-958b-18fdca13009c",
+    "timestamp": "2026-07-07T11:09:29.766Z",
+    "level": "info",
+    "category": "system",
+    "message": "Server started on port 3000"
+  },
+  {
+    "id": "init-001",
+    "timestamp": "2026-07-07T10:00:00.000Z",
+    "level": "info",
+    "category": "system",
+    "message": "Caffeine Co. system initialized successfully."
+  }
+]

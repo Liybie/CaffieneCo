@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Caffeine Co.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <!-- Login Screen -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-bg"></div>
+    <div class="login-card">
+      <div class="login-header">
+        <span class="login-mark">CC</span>
+        <h1>Caffeine Co.</h1>
+        <p>Admin Portal</p>
+      </div>
+
+      <div class="lockout-banner hidden" id="lockoutBanner">
+        <span class="lockout-mark">LOCK</span>
+        <div>
+          <strong>Access Locked</strong>
+          <p id="lockoutMessage">Too many failed attempts. Try again in <span id="lockoutTimer">10:00</span>.</p>
+        </div>
+      </div>
+
+      <form class="login-form" id="loginForm">
+        <div class="form-field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required autocomplete="username" placeholder="Enter username">
+        </div>
+        <div class="form-field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Enter password">
+        </div>
+        <div class="login-error hidden" id="loginError"></div>
+        <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
+          <span class="btn-text">Sign In</span>
+          <span class="btn-loader hidden"></span>
+        </button>
+      </form>
+
+      <a href="/" class="back-link">← Back to website</a>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div class="admin-dashboard hidden" id="adminDashboard">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="sidebar-mark">CC</span>
+        <div>
+          <strong>Caffeine Co.</strong>
+          <small>Admin Panel</small>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="shop-info">
+          <span class="nav-index">01</span> Shop Info
+        </button>
+        <button class="nav-item" data-tab="specialty">
+          <span class="nav-index">02</span> Specialty
+        </button>
+        <button class="nav-item" data-tab="discount">
+          <span class="nav-index">03</span> Discount & Email
+        </button>
+        <button class="nav-item" data-tab="pros">
+          <span class="nav-index">04</span> Space / Pros
+        </button>
+        <button class="nav-item" data-tab="subscribers">
+          <span class="nav-index">05</span> Subscribers
+        </button>
+        <button class="nav-item" data-tab="logs">
+          <span class="nav-index">06</span> System Log
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn btn-outline btn-sm btn-full" id="logoutBtn">Sign Out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="content-header">
+        <h2 id="tabTitle">Shop Info</h2>
+        <div class="header-actions">
+          <span class="status-badge" id="saveStatus"></span>
+        </div>
+      </header>
+
+      <!-- Shop Info Tab -->
+      <section class="tab-panel active" id="tab-shop-info">
+        <form class="admin-form" id="shopInfoForm">
+          <div class="form-row">
+            <div class="form-field">
+              <label>Shop Name</label>
+              <input type="text" name="shopName" id="fieldShopName">
+            </div>
+            <div class="form-field">
+              <label>Tagline</label>
+              <input type="text" name="tagline" id="fieldTagline">
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Description</label>
+            <textarea name="description" id="fieldDescription" rows="4"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Phone</label>
+              <input type="text" name="contact.phone" id="fieldPhone">
+            </div>
+            <div class="form-field">
+              <label>Email</label>
+              <input type="email" name="contact.email" id="fieldEmail">
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Address</label>
+            <input type="text" name="contact.address" id="fieldAddress">
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Weekday Hours</label>
+              <input type="text" name="hours.weekdays" id="fieldHoursWeekdays">
+            </div>
+            <div class="form-field">
+              <label>Weekend Hours</label>
+              <input type="text" name="hours.weekends" id="fieldHoursWeekends">
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Hero Image URL</label>
+            <input type="url" name="heroImage" id="fieldHeroImage">
+          </div>
+          <div class="form-field">
+            <label>Map Embed URL</label>
+            <input type="url" name="mapEmbed" id="fieldMapEmbed">
+          </div>
+          <button type="submit" class="btn btn-primary">Save Shop Info</button>
+        </form>
+      </section>
+
+      <!-- Specialty Tab -->
+      <section class="tab-panel" id="tab-specialty">
+        <form class="admin-form" id="specialtyForm">
+          <div class="form-field">
+            <label>Today's Specialty</label>
+            <textarea name="specialty" id="fieldSpecialty" rows="5" placeholder="Describe your signature brew..."></textarea>
+            <p class="field-hint">This appears prominently on the customer page.</p>
+          </div>
+          <div class="form-field">
+            <label>Specialty Image URL</label>
+            <input type="url" name="specialtyImage" id="fieldSpecialtyImage" placeholder="https://...">
+          </div>
+          <div class="preview-card">
+            <span class="preview-label">Preview</span>
+            <p id="specialtyPreview">—</p>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Specialty</button>
+        </form>
+      </section>
+
+      <!-- Discount Tab -->
+      <section class="tab-panel" id="tab-discount">
+        <form class="admin-form" id="discountForm">
+          <div class="form-row">
+            <div class="form-field">
+              <label>Discount Percentage</label>
+              <input type="number" name="discountPercent" id="fieldDiscountPercent" min="1" max="100">
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Email Message Template</label>
+            <textarea name="discountMessage" id="fieldDiscountMessage" rows="3"></textarea>
+            <p class="field-hint">Use <code>{discount}</code> as a placeholder for the percentage value.</p>
+          </div>
+          <div class="preview-card email-preview">
+            <span class="preview-label">Email Preview</span>
+            <div class="email-preview-body" id="emailPreview">
+              Welcome to the Caffeine Co. family! Enjoy 20% off your first visit.
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Discount Settings</button>
+        </form>
+      </section>
+
+      <!-- Pros Tab -->
+      <section class="tab-panel" id="tab-pros">
+        <div class="pros-editor" id="prosEditor"></div>
+        <button class="btn btn-outline" id="addProBtn">+ Add Pro</button>
+        <button class="btn btn-primary" id="saveProsBtn" style="margin-left: 12px;">Save Pros</button>
+      </section>
+
+      <!-- Subscribers Tab -->
+      <section class="tab-panel" id="tab-subscribers">
+        <div class="stats-row">
+          <div class="stat-card">
+            <span class="stat-value" id="subscriberCount">0</span>
+            <span class="stat-label">Total Subscribers</span>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Code</th>
+                <th>Discount</th>
+                <th>Subscribed</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="subscribersTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- System Log Tab -->
+      <section class="tab-panel" id="tab-logs">
+        <div class="log-filters">
+          <select id="logCategoryFilter">
+            <option value="">All Categories</option>
+            <option value="system">System</option>
+            <option value="auth">Auth</option>
+            <option value="security">Security</option>
+            <option value="admin">Admin</option>
+            <option value="customer">Customer</option>
+            <option value="email">Email</option>
+          </select>
+          <select id="logLevelFilter">
+            <option value="">All Levels</option>
+            <option value="info">Info</option>
+            <option value="warn">Warning</option>
+            <option value="error">Error</option>
+          </select>
+          <button class="btn btn-outline btn-sm" id="refreshLogsBtn">Refresh</button>
+        </div>
+        <div class="log-list" id="logList"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>

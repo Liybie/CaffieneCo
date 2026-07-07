@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caffeine Co.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/border-glow.css">
+</head>
+<body class="theme-coffee">
+  <div class="grain" aria-hidden="true"></div>
+  <div class="coffee-vignette" aria-hidden="true"></div>
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+  <div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+  <div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+
+  <div class="preloader" id="preloader">
+    <div class="preloader-inner">
+      <span class="preloader-count" id="preloaderCount">000</span>
+      <div class="preloader-bar"><div class="preloader-fill" id="preloaderFill"></div></div>
+      <p class="preloader-label">Brewing experience</p>
+    </div>
+  </div>
+
+  <nav class="nav on-dark" id="navbar">
+    <a href="#home" class="nav-logo">
+      <span class="nav-logo-mark">CC</span>
+      <span class="nav-logo-name">Caffeine Co.</span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about" data-nav>About</a></li>
+      <li><a href="#specialty" data-nav>Specialty</a></li>
+      <li><a href="#why-us" data-nav>Space</a></li>
+      <li><a href="#location" data-nav>Visit</a></li>
+      <li><a href="#discount" class="nav-pill" data-nav>First Visit Offer</a></li>
+    </ul>
+    <button class="nav-toggle" id="mobileMenuBtn" aria-label="Menu">
+      <span></span><span></span>
+    </button>
+  </nav>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero panel tone-void" id="home" data-section="01">
+      <div class="hero-media">
+        <div class="hero-bg" id="heroBg">
+          <img id="heroImg" src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1920&q=85" alt="Coffee being poured at Caffeine Co." fetchpriority="high">
+        </div>
+        <div class="hero-vignette"></div>
+        <div class="hero-steam" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="hero-body">
+        <p class="hero-meta reveal-chars">Est. 2020 / Artisan Roasters</p>
+        <h1 class="hero-headline">
+          <span class="hero-line"><span class="hero-word" id="heroTitle">Caffeine</span></span>
+          <span class="hero-line hero-line-outline"><span class="hero-word" id="heroTitleEnd">Co.</span></span>
+        </h1>
+        <p class="hero-lead reveal-up" id="heroTagline">Where Every Cup Tells a Story</p>
+        <div class="hero-cta reveal-up">
+          <a href="#discount" class="btn btn-fill magnetic">Claim First Visit Offer</a>
+          <a href="#about" class="btn btn-ghost magnetic">Enter the Space</a>
+        </div>
+      </div>
+      <div class="hero-rail">
+        <span>Scroll to explore</span>
+        <div class="hero-rail-line"></div>
+      </div>
+    </section>
+
+    <!-- MARQUEE -->
+    <div class="marquee-wrap tone-roast" aria-hidden="true">
+      <div class="marquee-track marquee-forward">
+        <span>Single Origin</span><span class="marquee-dot"></span>
+        <span>Small Batch</span><span class="marquee-dot"></span>
+        <span>Study Friendly</span><span class="marquee-dot"></span>
+        <span>Remote Ready</span><span class="marquee-dot"></span>
+        <span>Neighborhood Ritual</span><span class="marquee-dot"></span>
+        <span>Single Origin</span><span class="marquee-dot"></span>
+        <span>Small Batch</span><span class="marquee-dot"></span>
+        <span>Study Friendly</span><span class="marquee-dot"></span>
+        <span>Remote Ready</span><span class="marquee-dot"></span>
+        <span>Neighborhood Ritual</span><span class="marquee-dot"></span>
+      </div>
+      <div class="marquee-track marquee-reverse">
+        <span>Pour Over</span><span class="marquee-dot"></span>
+        <span>Cold Brew</span><span class="marquee-dot"></span>
+        <span>Fair Trade</span><span class="marquee-dot"></span>
+        <span>Open Late</span><span class="marquee-dot"></span>
+        <span>Fresh Roast</span><span class="marquee-dot"></span>
+        <span>Pour Over</span><span class="marquee-dot"></span>
+        <span>Cold Brew</span><span class="marquee-dot"></span>
+        <span>Fair Trade</span><span class="marquee-dot"></span>
+        <span>Open Late</span><span class="marquee-dot"></span>
+        <span>Fresh Roast</span><span class="marquee-dot"></span>
+      </div>
+    </div>
+
+    <!-- DISCOUNT -->
+    <section class="discount panel tone-espresso" id="discount" data-section="02">
+      <div class="discount-bg" aria-hidden="true">
+        <div class="discount-bg-glow"></div>
+        <div class="discount-bg-line"></div>
+        <div class="coffee-orb coffee-orb-1"></div>
+        <div class="coffee-orb coffee-orb-2"></div>
+      </div>
+      <div class="container-wide discount-inner">
+        <div class="section-tag reveal-up">02 / Offer</div>
+        <div class="discount-layout">
+          <div class="discount-display">
+            <div
+              class="border-glow-card border-glow-circle discount-badge-glow"
+              id="discountBadgeGlow"
+              data-border-glow
+              data-glow-color="38 72 78"
+              data-background-color="rgba(5, 4, 3, 0.35)"
+              data-border-radius="50%"
+              data-shape="circle"
+              data-glow-radius="20"
+              data-glow-intensity="1.5"
+              data-cone-spread="30"
+              data-fill-opacity="0.68"
+              data-edge-sensitivity="55"
+              data-orbit="true"
+              data-orbit-proximity="78"
+              data-hover-cone-spread="42"
+              data-colors="#f0e6d8,#c8a97e,#e8c99a"
+            >
+              <span class="edge-light" aria-hidden="true"></span>
+              <span class="badge-glow-fill" aria-hidden="true"></span>
+              <span class="badge-glow-ring" aria-hidden="true"></span>
+              <div class="border-glow-inner discount-badge">
+                <div class="discount-num">
+                  <span id="discountPercent">20</span>
+                  <small>percent off</small>
+                </div>
+              </div>
+            </div>
+            <p class="discount-caption">First visit only. One code per email.</p>
+          </div>
+          <div class="discount-beam" aria-hidden="true">
+            <span class="discount-beam-line"></span>
+            <span class="discount-beam-pulse"></span>
+          </div>
+          <div class="discount-form-wrap">
+            <h2 class="discount-title">
+              <span class="discount-title-line">Your table</span>
+              <span class="discount-title-line discount-title-serif">is waiting.</span>
+            </h2>
+            <p class="section-copy discount-copy">Drop your email. We send a single-use welcome code — no newsletter trap, no spam loop.</p>
+            <ul class="discount-perks" aria-label="Offer details">
+              <li>Single-use code</li>
+              <li>No newsletter</li>
+              <li>Sent instantly</li>
+            </ul>
+            <div class="discount-form-box">
+              <div class="discount-crema-fill" aria-hidden="true"></div>
+              <form class="discount-form" id="discountForm">
+                <div class="input-row">
+                  <input type="email" id="emailInput" placeholder="you@email.com" required autocomplete="email">
+                  <button type="submit" class="btn btn-fill" id="submitBtn">
+                    <span class="btn-text">Send Code</span>
+                    <span class="btn-loader hidden"></span>
+                  </button>
+                </div>
+              </form>
+              <div class="form-message hidden" id="formMessage"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="about panel tone-roast" id="about" data-section="03">
+      <div class="container-wide">
+        <div class="about-header">
+          <div class="section-tag reveal-up">03 / Story</div>
+          <h2 class="section-title-xl split-target">More than<br>a pour.</h2>
+        </div>
+        <div class="about-grid">
+          <div class="about-copy reveal-up">
+            <p class="about-description" id="aboutDescription">Loading...</p>
+            <div class="detail-stack">
+              <article class="detail-row">
+                <span class="detail-index">A</span>
+                <div>
+                  <h3>Hours</h3>
+                  <p id="hoursWeekdays">Mon–Fri: 7:00 AM – 9:00 PM</p>
+                  <p id="hoursWeekends">Sat–Sun: 8:00 AM – 10:00 PM</p>
+                </div>
+              </article>
+              <article class="detail-row">
+                <span class="detail-index">B</span>
+                <div>
+                  <h3>Contact</h3>
+                  <p id="contactPhone">+1 (555) 867-5309</p>
+                  <p id="contactEmail">hello@caffeineco.com</p>
+                </div>
+              </article>
+              <article class="detail-row">
+                <span class="detail-index">C</span>
+                <div>
+                  <h3>Address</h3>
+                  <p id="contactAddress">42 Brew Street, Coffee District, CA 90210</p>
+                </div>
+              </article>
+            </div>
+          </div>
+          <div class="about-gallery" id="galleryGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPECIALTY -->
+    <section class="specialty panel tone-void" id="specialty" data-section="04">
+      <div class="specialty-bg"></div>
+      <div class="container-wide specialty-inner">
+        <div class="specialty-grid">
+          <div class="specialty-copy">
+            <div class="section-tag">04 / Today</div>
+            <div class="specialty-accent" aria-hidden="true">
+              <span class="specialty-accent-dot"></span>
+              <span class="specialty-accent-ring"></span>
+            </div>
+            <h2 class="section-title-xl specialty-title">
+              <span class="specialty-title-line">Signature</span>
+              <span class="specialty-title-line specialty-title-outline">Brew</span>
+            </h2>
+            <blockquote class="specialty-quote" id="specialtyText">Loading specialty...</blockquote>
+            <div class="specialty-rule"></div>
+          </div>
+          <div class="specialty-visual">
+            <div class="specialty-frame">
+              <img id="specialtyImg" src="https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1200&q=85" alt="Americano specialty coffee">
+              <span class="specialty-frame-label">Americano</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROS / HORIZONTAL FEEL -->
+    <section class="space panel tone-espresso" id="why-us" data-section="05">
+      <div class="container-wide">
+        <div class="space-header">
+          <div class="section-tag reveal-up">05 / Space</div>
+          <h2 class="section-title-xl split-target">Built for<br>how you work.</h2>
+          <p class="section-copy reveal-up">Studying, building, meeting, or simply staying — the room adapts to the rhythm you bring.</p>
+        </div>
+        <div class="space-list" id="prosGrid"></div>
+      </div>
+    </section>
+
+    <!-- LOCATION -->
+    <section class="visit panel tone-roast" id="location" data-section="06">
+      <div class="container-wide">
+        <div class="visit-header reveal-up">
+          <div class="section-tag">06 / Visit</div>
+          <h2 class="section-title split-target">Find the door.</h2>
+        </div>
+        <div class="visit-grid">
+          <div class="map-frame reveal-scale">
+            <iframe id="mapFrame" src="" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Caffeine Co. location"></iframe>
+          </div>
+          <aside class="visit-side reveal-up">
+            <p class="visit-address" id="locationAddress">42 Brew Street, Coffee District, CA 90210</p>
+            <div class="visit-hours">
+              <h3>Opening Hours</h3>
+              <p id="locationHoursWeekdays">Mon–Fri: 7:00 AM – 9:00 PM</p>
+              <p id="locationHoursWeekends">Sat–Sun: 8:00 AM – 10:00 PM</p>
+            </div>
+            <a href="#discount" class="btn btn-fill magnetic">Directions + Offer</a>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer tone-void">
+    <div class="container-wide footer-top">
+      <div class="footer-brand">
+        <span class="footer-mark">CC</span>
+        <div>
+          <strong>Caffeine Co.</strong>
+          <p id="footerTagline">Where Every Cup Tells a Story</p>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Navigate</h4>
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#specialty">Specialty</a>
+        <a href="#why-us">Space</a>
+        <a href="#location">Visit</a>
+      </div>
+      <div class="footer-col">
+        <h4>Reach</h4>
+        <p id="footerPhone">+1 (555) 867-5309</p>
+        <p id="footerEmail">hello@caffeineco.com</p>
+        <p id="footerAddress">42 Brew Street, Coffee District, CA 90210</p>
+      </div>
+      <div class="footer-col">
+        <h4>First Visit</h4>
+        <p><span id="footerDiscount">20</span>% off when you join.</p>
+        <a href="#discount" class="footer-link">Claim offer</a>
+      </div>
+    </div>
+    <div class="container-wide footer-bottom">
+      <p>&copy; 2026 Caffeine Co.</p>
+      <a href="/admin" class="footer-admin">Admin</a>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script src="/js/border-glow.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>
