@@ -1,5 +1,12 @@
 [
   {
+    "id": "25ce5f64-971e-4fb5-9d28-7535c5640980",
+    "timestamp": "2026-07-11T16:35:12.888Z",
+    "level": "info",
+    "category": "system",
+    "message": "Server started on port 3000"
+  },
+  {
     "id": "c5cae078-2de3-4de9-ab24-fabe633d19c6",
     "timestamp": "2026-07-07T14:02:29.056Z",
     "level": "info",
