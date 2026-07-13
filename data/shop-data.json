@@ -47,6 +47,9 @@
   "discountPercent": 20,
   "discountMessage": "Welcome to the Caffeine Co. family! Enjoy {discount}% off your first visit.",
   "mapEmbed": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3304.835223789012!2d-118.243683!3d34.052235!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c2c75ddc27da13%3A0xe22fdf6f254608f4!2sLos%20Angeles%2C%20CA!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus",
+  "mapLat": 34.052235,
+  "mapLng": -118.243683,
+  "mapZoom": 15,
   "heroImage": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1920&q=85",
   "specialtyImage": "https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1200&q=85",
   "galleryImages": [

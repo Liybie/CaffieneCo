@@ -7,6 +7,7 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const { getStore, ensureAdminUser, verifyAdminCredentials, isSupabaseConfigured } = require('./db');
+const { buildMapEmbedUrl, resolveMapEmbed } = require('./lib/maps');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -190,7 +191,7 @@ async function saveUploadedImage(file) {
 app.get('/api/shop', async (req, res) => {
   try {
     const data = await getStore().getShopData();
-    res.json(data);
+    res.json({ ...data, mapEmbed: resolveMapEmbed(data) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to load shop data.' });
   }
@@ -358,11 +359,41 @@ app.get('/api/admin/shop', requireAuth, async (req, res) => {
 
 app.put('/api/admin/shop', requireAuth, async (req, res) => {
   try {
-    const updated = await getStore().updateShopData(req.body);
-    await addLog('info', 'admin', 'Shop information updated.', { fields: Object.keys(req.body) });
+    const body = { ...req.body };
+    if (body.mapLat != null && body.mapLng != null && !body.mapUseCustomEmbed) {
+      body.mapEmbed = buildMapEmbedUrl(body.mapLat, body.mapLng, body.mapZoom || 15);
+    }
+    delete body.mapUseCustomEmbed;
+    const updated = await getStore().updateShopData(body);
+    await addLog('info', 'admin', 'Shop information updated.', { fields: Object.keys(body) });
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update shop data.' });
+  }
+});
+
+app.get('/api/admin/geocode', requireAuth, async (req, res) => {
+  try {
+    const q = req.query.q?.trim();
+    if (!q) return res.status(400).json({ error: 'Address query is required.' });
+
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`,
+      { headers: { 'User-Agent': 'CaffeineCo-CoffeeShop/1.0 (admin geocode)' } }
+    );
+    if (!response.ok) return res.status(502).json({ error: 'Geocoding service unavailable.' });
+
+    const results = await response.json();
+    if (!results.length) return res.status(404).json({ error: 'Location not found. Try a more specific address.' });
+
+    const place = results[0];
+    res.json({
+      lat: parseFloat(place.lat),
+      lng: parseFloat(place.lon),
+      displayName: place.display_name
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Geocoding failed.' });
   }
 });
 

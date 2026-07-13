@@ -4,6 +4,7 @@ let lockoutInterval = null;
 
 const TAB_TITLES = {
   'shop-info': 'Shop Info',
+  location: 'Location / Map',
   specialty: 'Specialty',
   discount: 'Discount & Email',
   images: 'Images',
@@ -11,6 +12,10 @@ const TAB_TITLES = {
   subscribers: 'Subscribers',
   logs: 'System Log'
 };
+
+let locationMap = null;
+let locationMarker = null;
+let locationMapReady = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   checkAuthStatus();
@@ -170,6 +175,7 @@ function initTabs() {
 
       if (tab === 'subscribers') loadSubscribers();
       if (tab === 'logs') loadLogs();
+      if (tab === 'location') initLocationMap();
     });
   });
 }
@@ -211,12 +217,12 @@ function populateForms(data) {
   document.getElementById('fieldAddress').value = data.contact?.address || '';
   document.getElementById('fieldHoursWeekdays').value = data.hours?.weekdays || '';
   document.getElementById('fieldHoursWeekends').value = data.hours?.weekends || '';
-  document.getElementById('fieldMapEmbed').value = data.mapEmbed || '';
   document.getElementById('fieldSpecialty').value = data.specialty || '';
   document.getElementById('fieldDiscountPercent').value = data.discountPercent || 20;
   document.getElementById('fieldDiscountMessage').value = data.discountMessage || '';
 
   populateImageEditor(data);
+  populateLocationEditor(data);
   updateSpecialtyPreview();
   updateEmailPreview();
   renderProsEditor(data.pros || []);
@@ -252,8 +258,7 @@ function initForms() {
       hours: {
         weekdays: document.getElementById('fieldHoursWeekdays').value,
         weekends: document.getElementById('fieldHoursWeekends').value
-      },
-      mapEmbed: document.getElementById('fieldMapEmbed').value
+      }
     });
   });
 
@@ -289,6 +294,7 @@ function initForms() {
   document.getElementById('logLevelFilter').addEventListener('change', loadLogs);
 
   initImageEditor();
+  initLocationEditor();
 }
 
 async function saveShopData(updates) {
@@ -605,4 +611,213 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+function buildMapEmbedUrl(lat, lng, zoom = 15) {
+  return `https://maps.google.com/maps?q=${lat},${lng}&hl=en&z=${zoom}&output=embed`;
+}
+
+function buildGoogleMapsUrl(lat, lng) {
+  return `https://www.google.com/maps?q=${lat},${lng}`;
+}
+
+function getLocationCoords() {
+  const lat = parseFloat(document.getElementById('fieldMapLat')?.value);
+  const lng = parseFloat(document.getElementById('fieldMapLng')?.value);
+  if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+  return null;
+}
+
+function populateLocationEditor(data) {
+  const addressEl = document.getElementById('fieldLocationAddress');
+  const latEl = document.getElementById('fieldMapLat');
+  const lngEl = document.getElementById('fieldMapLng');
+  const zoomEl = document.getElementById('fieldMapZoom');
+  const customEl = document.getElementById('fieldMapEmbedCustom');
+
+  if (!addressEl) return;
+
+  addressEl.value = data.contact?.address || '';
+  latEl.value = data.mapLat ?? '';
+  lngEl.value = data.mapLng ?? '';
+  zoomEl.value = data.mapZoom || 15;
+  document.getElementById('mapZoomValue').textContent = zoomEl.value;
+  customEl.value = '';
+
+  updateMapPreview();
+  updateGoogleMapsLink();
+
+  if (locationMapReady && locationMarker) {
+    const coords = getLocationCoords();
+    if (coords) {
+      locationMarker.setLatLng([coords.lat, coords.lng]);
+      locationMap.setView([coords.lat, coords.lng], parseInt(zoomEl.value, 10));
+    }
+  }
+}
+
+function updateMapPreview() {
+  const preview = document.getElementById('adminMapPreview');
+  const custom = document.getElementById('fieldMapEmbedCustom')?.value.trim();
+  const coords = getLocationCoords();
+  const zoom = parseInt(document.getElementById('fieldMapZoom')?.value || '15', 10);
+
+  if (!preview) return;
+
+  if (custom) {
+    preview.src = custom;
+    return;
+  }
+  if (coords) {
+    preview.src = buildMapEmbedUrl(coords.lat, coords.lng, zoom);
+    return;
+  }
+  preview.removeAttribute('src');
+}
+
+function updateGoogleMapsLink() {
+  const link = document.getElementById('openGoogleMapsLink');
+  const coords = getLocationCoords();
+  if (!link) return;
+  if (coords) {
+    link.href = buildGoogleMapsUrl(coords.lat, coords.lng);
+    link.classList.remove('disabled');
+  } else {
+    link.href = '#';
+  }
+}
+
+function setLocationCoords(lat, lng, panMap = true, clearCustom = true) {
+  document.getElementById('fieldMapLat').value = Number(lat).toFixed(6);
+  document.getElementById('fieldMapLng').value = Number(lng).toFixed(6);
+  if (clearCustom) {
+    const customEl = document.getElementById('fieldMapEmbedCustom');
+    if (customEl) customEl.value = '';
+  }
+  updateMapPreview();
+  updateGoogleMapsLink();
+
+  if (locationMapReady && locationMarker) {
+    locationMarker.setLatLng([lat, lng]);
+    if (panMap) {
+      const zoom = parseInt(document.getElementById('fieldMapZoom')?.value || '15', 10);
+      locationMap.setView([lat, lng], zoom);
+    }
+  }
+}
+
+function initLocationMap() {
+  if (locationMapReady || typeof L === 'undefined') return;
+
+  const container = document.getElementById('locationPickerMap');
+  if (!container || container.dataset.initialized) return;
+
+  const coords = getLocationCoords() || { lat: 34.052235, lng: -118.243683 };
+  const zoom = parseInt(document.getElementById('fieldMapZoom')?.value || '15', 10);
+
+  locationMap = L.map(container, { scrollWheelZoom: true }).setView([coords.lat, coords.lng], zoom);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(locationMap);
+
+  locationMarker = L.marker([coords.lat, coords.lng], { draggable: true }).addTo(locationMap);
+
+  locationMarker.on('dragend', () => {
+    const { lat, lng } = locationMarker.getLatLng();
+    setLocationCoords(lat, lng, false);
+  });
+
+  locationMap.on('click', (e) => {
+    setLocationCoords(e.latlng.lat, e.latlng.lng, false);
+  });
+
+  container.dataset.initialized = 'true';
+  locationMapReady = true;
+
+  setTimeout(() => locationMap.invalidateSize(), 200);
+}
+
+function initLocationEditor() {
+  const form = document.getElementById('locationForm');
+  if (!form) return;
+
+  const latEl = document.getElementById('fieldMapLat');
+  const lngEl = document.getElementById('fieldMapLng');
+  const zoomEl = document.getElementById('fieldMapZoom');
+  const customEl = document.getElementById('fieldMapEmbedCustom');
+
+  document.getElementById('geocodeBtn')?.addEventListener('click', async () => {
+    const address = document.getElementById('fieldLocationAddress')?.value.trim();
+    if (!address) return alert('Enter an address to search.');
+
+    const btn = document.getElementById('geocodeBtn');
+    btn.disabled = true;
+    btn.textContent = 'Searching...';
+
+    try {
+      const res = await apiFetch(`/api/admin/geocode?q=${encodeURIComponent(address)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Location not found.');
+        return;
+      }
+      setLocationCoords(data.lat, data.lng);
+      if (data.displayName && !document.getElementById('fieldLocationAddress').value) {
+        document.getElementById('fieldLocationAddress').value = data.displayName;
+      }
+    } catch {
+      alert('Failed to search address.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Search address';
+    }
+  });
+
+  const onCoordChange = () => {
+    updateMapPreview();
+    updateGoogleMapsLink();
+    const coords = getLocationCoords();
+    if (coords && locationMarker) {
+      locationMarker.setLatLng([coords.lat, coords.lng]);
+    }
+  };
+
+  latEl?.addEventListener('input', onCoordChange);
+  lngEl?.addEventListener('input', onCoordChange);
+  zoomEl?.addEventListener('input', () => {
+    document.getElementById('mapZoomValue').textContent = zoomEl.value;
+    onCoordChange();
+    if (locationMap && getLocationCoords()) {
+      locationMap.setZoom(parseInt(zoomEl.value, 10));
+    }
+  });
+  customEl?.addEventListener('input', updateMapPreview);
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const coords = getLocationCoords();
+    const customEmbed = customEl.value.trim();
+    const payload = {
+      contact: {
+        ...shopData.contact,
+        address: document.getElementById('fieldLocationAddress').value
+      },
+      mapZoom: parseInt(zoomEl.value, 10)
+    };
+
+    if (coords) {
+      payload.mapLat = coords.lat;
+      payload.mapLng = coords.lng;
+    }
+
+    if (customEmbed) {
+      payload.mapEmbed = customEmbed;
+      payload.mapUseCustomEmbed = true;
+    } else if (coords) {
+      payload.mapEmbed = buildMapEmbedUrl(coords.lat, coords.lng, payload.mapZoom);
+      payload.mapUseCustomEmbed = false;
+    }
+
+    saveShopData(payload);
+  });
 }

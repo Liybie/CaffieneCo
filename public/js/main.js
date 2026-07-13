@@ -149,7 +149,23 @@ function populatePage(data) {
   ['discountPercent', 'footerDiscount'].forEach(id => setText(id, discount));
 
   const mapFrame = document.getElementById('mapFrame');
-  if (mapFrame && data.mapEmbed) mapFrame.src = data.mapEmbed;
+  const mapSrc = data.mapEmbed
+    || (data.mapLat != null && data.mapLng != null
+      ? `https://maps.google.com/maps?q=${data.mapLat},${data.mapLng}&hl=en&z=${data.mapZoom || 15}&output=embed`
+      : '');
+  if (mapFrame && mapSrc) mapFrame.src = mapSrc;
+
+  const directionsBtn = document.getElementById('directionsBtn');
+  if (directionsBtn) {
+    if (data.mapLat != null && data.mapLng != null) {
+      directionsBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${data.mapLat},${data.mapLng}`;
+    } else if (data.contact?.address) {
+      directionsBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(data.contact.address)}`;
+    } else {
+      directionsBtn.href = '#discount';
+      directionsBtn.removeAttribute('target');
+    }
+  }
 
   const galleryGrid = document.getElementById('galleryGrid');
   if (galleryGrid && data.galleryImages) {

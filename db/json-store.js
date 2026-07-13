@@ -20,6 +20,9 @@ const DEFAULT_SHOP_DATA = {
   discountPercent: 20,
   discountMessage: 'Welcome to the Caffeine Co. family! Enjoy {discount}% off your first visit.',
   mapEmbed: '',
+  mapLat: 34.052235,
+  mapLng: -118.243683,
+  mapZoom: 15,
   heroImage: '',
   specialtyImage: '',
   galleryImages: []
