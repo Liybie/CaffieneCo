@@ -714,19 +714,6 @@ body {
 }
 
 /* ===== Subscriber / code search ===== */
-.discount-lookup-card {
-  margin-top: 40px;
-  padding-top: 32px;
-  border-top: 1px solid rgba(200, 169, 126, 0.15);
-}
-
-.lookup-title {
-  font-family: var(--font-display, Georgia, serif);
-  font-size: 18px;
-  margin-bottom: 8px;
-  color: var(--color-primary);
-}
-
 .subscriber-search-row {
   display: flex;
   gap: 12px;
@@ -757,13 +744,7 @@ body {
   margin-bottom: 12px;
 }
 
-.lookup-empty {
-  text-align: center;
-  padding: 24px !important;
-  color: var(--color-text-muted);
-}
-
-.lookup-table code {
+.data-table code {
   font-size: 12px;
   letter-spacing: 0.04em;
 }

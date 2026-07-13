@@ -175,7 +175,6 @@ function initTabs() {
       document.getElementById('tabTitle').textContent = TAB_TITLES[tab] || tab;
 
       if (tab === 'subscribers') loadSubscribers();
-      if (tab === 'discount') ensureSubscribersLoaded().then(() => renderDiscountLookup());
       if (tab === 'logs') loadLogs();
       if (tab === 'location') initLocationMap();
     });
@@ -292,9 +291,7 @@ function initForms() {
 
   document.getElementById('refreshLogsBtn').addEventListener('click', loadLogs);
   document.getElementById('refreshSubscribersBtn')?.addEventListener('click', loadSubscribers);
-  document.getElementById('refreshDiscountLookupBtn')?.addEventListener('click', () => loadSubscribers(true));
   document.getElementById('subscriberSearch')?.addEventListener('input', () => renderSubscribersTable());
-  document.getElementById('discountCodeSearch')?.addEventListener('input', renderDiscountLookup);
   document.getElementById('logCategoryFilter').addEventListener('change', loadLogs);
   document.getElementById('logLevelFilter').addEventListener('change', loadLogs);
 
@@ -347,11 +344,6 @@ function getProsFromEditor() {
     title: card.querySelector('[data-field="title"]').value,
     description: card.querySelector('[data-field="description"]').value
   }));
-}
-
-async function ensureSubscribersLoaded(force = false) {
-  if (!force && allSubscribers.length) return allSubscribers;
-  return loadSubscribers(force);
 }
 
 function filterSubscribers(list, query) {
@@ -423,7 +415,6 @@ async function toggleSubscriberClaimed(email, used, inputEl) {
     if (idx !== -1) allSubscribers[idx].used = used;
 
     renderSubscribersTable();
-    renderDiscountLookup();
 
     const statusEl = document.getElementById('saveStatus');
     statusEl.textContent = used ? 'Marked claimed ✓' : 'Marked active ✓';
@@ -466,42 +457,11 @@ function renderSubscribersTable() {
   bindClaimToggles(tbody);
 }
 
-function renderDiscountLookup() {
-  const query = document.getElementById('discountCodeSearch')?.value || '';
-  const filtered = filterSubscribers(allSubscribers, query);
-  const tbody = document.getElementById('discountLookupTable');
-  const meta = document.getElementById('discountLookupMeta');
-
-  if (meta) {
-    meta.textContent = query
-      ? `${filtered.length} match(es) for “${query}”`
-      : allSubscribers.length
-        ? `${allSubscribers.length} code(s) on file — type to search`
-        : 'No discount codes yet';
-  }
-
-  if (!tbody) return;
-
-  if (allSubscribers.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="lookup-empty">No discount codes yet.</td></tr>';
-    return;
-  }
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="lookup-empty">No matches found.</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = filtered.map(s => subscriberRowHtml(s, { showRevoke: false })).join('');
-  bindClaimToggles(tbody);
-}
-
 async function loadSubscribers(force = false) {
   try {
     const res = await apiFetch('/api/admin/subscribers');
     allSubscribers = await res.json();
     renderSubscribersTable();
-    renderDiscountLookup();
     return allSubscribers;
   } catch (err) {
     console.error('Failed to load subscribers:', err);
