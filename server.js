@@ -431,6 +431,30 @@ app.delete('/api/admin/subscribers/:email/revoke', requireAuth, async (req, res)
   }
 });
 
+app.patch('/api/admin/subscribers/:email/claimed', requireAuth, async (req, res) => {
+  try {
+    const email = decodeURIComponent(req.params.email);
+    const { used } = req.body;
+    if (typeof used !== 'boolean') {
+      return res.status(400).json({ error: 'Request body must include used: true or false.' });
+    }
+
+    const updated = await getStore().setSubscriberUsed(email, used);
+    if (!updated) {
+      return res.status(404).json({ error: 'Subscriber not found.' });
+    }
+
+    await addLog('info', 'admin', `Code marked as ${used ? 'claimed' : 'active'} for ${email}.`, { email, used });
+    res.json({
+      success: true,
+      subscriber: updated,
+      message: used ? `Code marked as claimed for ${email}.` : `Code marked as active for ${email}.`
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update claim status.' });
+  }
+});
+
 app.get('/api/admin/logs', requireAuth, async (req, res) => {
   try {
     const { category, level, limit = 100 } = req.query;

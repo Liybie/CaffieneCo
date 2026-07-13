@@ -81,6 +81,15 @@ function createJsonStore() {
       return true;
     },
 
+    async setSubscriberUsed(email, used) {
+      const subscribers = readJSON(SUBSCRIBERS_FILE, []);
+      const index = subscribers.findIndex(s => s.email.toLowerCase() === email.toLowerCase());
+      if (index === -1) return null;
+      subscribers[index].used = Boolean(used);
+      writeJSON(SUBSCRIBERS_FILE, subscribers);
+      return subscribers[index];
+    },
+
     async addLog(level, category, message, meta = {}) {
       const logs = readJSON(LOG_FILE, []);
       const entry = {

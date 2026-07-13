@@ -103,6 +103,18 @@ function createSupabaseStore(url, serviceKey) {
       return true;
     },
 
+    async setSubscriberUsed(email, used) {
+      const { data, error } = await supabase
+        .from('subscribers')
+        .update({ used: Boolean(used) })
+        .ilike('email', email)
+        .select()
+        .single();
+      if (error) throw error;
+      if (!data) return null;
+      return mapSubscriber(data);
+    },
+
     async addLog(level, category, message, meta = {}) {
       const entry = {
         id: uuidv4(),

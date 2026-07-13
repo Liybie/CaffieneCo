@@ -374,9 +374,22 @@ function subscriberRowHtml(s, { showRevoke = false } = {}) {
       <td><code>${escapeHtml(s.code)}</code></td>
       <td>${s.discountPercent}%</td>
       <td>${new Date(s.subscribedAt).toLocaleString()}</td>
-      <td><span class="badge ${s.used ? 'badge-used' : 'badge-active'}">${s.used ? 'Used' : 'Active'}</span></td>
+      <td>${claimedToggleHtml(s)}</td>
       ${revokeCell}
     </tr>
+  `;
+}
+
+function claimedToggleHtml(s) {
+  const checked = s.used ? 'checked' : '';
+  const label = s.used ? 'Claimed' : 'Active';
+  const labelClass = s.used ? 'claimed' : 'active';
+  return `
+    <label class="claim-toggle" title="Toggle claimed status">
+      <input type="checkbox" class="claim-toggle-input" data-email="${escapeHtml(s.email)}" ${checked}>
+      <span class="claim-toggle-track" aria-hidden="true"></span>
+      <span class="claim-toggle-label ${labelClass}">${label}</span>
+    </label>
   `;
 }
 
@@ -384,6 +397,42 @@ function bindRevokeButtons(container) {
   container?.querySelectorAll('.btn-revoke').forEach(btn => {
     btn.addEventListener('click', () => revokeSubscriber(btn.dataset.email));
   });
+}
+
+function bindClaimToggles(container) {
+  container?.querySelectorAll('.claim-toggle-input').forEach(input => {
+    input.addEventListener('change', () => toggleSubscriberClaimed(input.dataset.email, input.checked, input));
+  });
+}
+
+async function toggleSubscriberClaimed(email, used, inputEl) {
+  const prevUsed = !used;
+  try {
+    const res = await apiFetch(`/api/admin/subscribers/${encodeURIComponent(email)}/claimed`, {
+      method: 'PATCH',
+      body: JSON.stringify({ used })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      if (inputEl) inputEl.checked = prevUsed;
+      alert(data.error || 'Failed to update claim status.');
+      return;
+    }
+
+    const idx = allSubscribers.findIndex(s => s.email.toLowerCase() === email.toLowerCase());
+    if (idx !== -1) allSubscribers[idx].used = used;
+
+    renderSubscribersTable();
+    renderDiscountLookup();
+
+    const statusEl = document.getElementById('saveStatus');
+    statusEl.textContent = used ? 'Marked claimed ✓' : 'Marked active ✓';
+    statusEl.className = 'status-badge success';
+    setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'status-badge'; }, 2500);
+  } catch {
+    if (inputEl) inputEl.checked = prevUsed;
+    alert('Failed to update claim status.');
+  }
 }
 
 function renderSubscribersTable() {
@@ -414,6 +463,7 @@ function renderSubscribersTable() {
 
   tbody.innerHTML = filtered.map(s => subscriberRowHtml(s, { showRevoke: true })).join('');
   bindRevokeButtons(tbody);
+  bindClaimToggles(tbody);
 }
 
 function renderDiscountLookup() {
@@ -443,6 +493,7 @@ function renderDiscountLookup() {
   }
 
   tbody.innerHTML = filtered.map(s => subscriberRowHtml(s, { showRevoke: false })).join('');
+  bindClaimToggles(tbody);
 }
 
 async function loadSubscribers(force = false) {

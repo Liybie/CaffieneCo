@@ -1,5 +1,18 @@
 @import url('/css/styles.css');
 
+/* Restore normal cursor — customer styles.css sets body { cursor: none } */
+body {
+  cursor: auto !important;
+}
+
+.cursor-ring,
+.cursor-dot,
+.grain,
+.coffee-vignette,
+.scroll-progress {
+  display: none !important;
+}
+
 /* ===== Login Screen ===== */
 .login-screen {
   min-height: 100vh;
@@ -727,6 +740,75 @@
 .lookup-table code {
   font-size: 12px;
   letter-spacing: 0.04em;
+}
+
+/* Claimed toggle */
+.claim-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.claim-toggle-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.claim-toggle-track {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--color-surface);
+  border: 1px solid rgba(200, 169, 126, 0.25);
+  border-radius: 999px;
+  transition: background 0.25s, border-color 0.25s;
+  flex-shrink: 0;
+}
+
+.claim-toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: var(--color-text-muted);
+  border-radius: 50%;
+  transition: transform 0.25s, background 0.25s;
+}
+
+.claim-toggle-input:checked + .claim-toggle-track {
+  background: rgba(106, 191, 105, 0.2);
+  border-color: rgba(106, 191, 105, 0.5);
+}
+
+.claim-toggle-input:checked + .claim-toggle-track::after {
+  transform: translateX(20px);
+  background: var(--color-success, #6abf69);
+}
+
+.claim-toggle-input:focus-visible + .claim-toggle-track {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.claim-toggle-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  min-width: 52px;
+}
+
+.claim-toggle-label.active {
+  color: var(--color-primary);
+}
+
+.claim-toggle-label.claimed {
+  color: var(--color-success, #6abf69);
 }
 
 /* ===== Responsive ===== */
