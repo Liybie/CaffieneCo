@@ -68,14 +68,17 @@
         <button class="nav-item" data-tab="discount">
           <span class="nav-index">03</span> Discount & Email
         </button>
+        <button class="nav-item" data-tab="images">
+          <span class="nav-index">04</span> Images
+        </button>
         <button class="nav-item" data-tab="pros">
-          <span class="nav-index">04</span> Space / Pros
+          <span class="nav-index">05</span> Space / Pros
         </button>
         <button class="nav-item" data-tab="subscribers">
-          <span class="nav-index">05</span> Subscribers
+          <span class="nav-index">06</span> Subscribers
         </button>
         <button class="nav-item" data-tab="logs">
-          <span class="nav-index">06</span> System Log
+          <span class="nav-index">07</span> System Log
         </button>
       </nav>
       <div class="sidebar-footer">
@@ -133,10 +136,6 @@
             </div>
           </div>
           <div class="form-field">
-            <label>Hero Image URL</label>
-            <input type="url" name="heroImage" id="fieldHeroImage">
-          </div>
-          <div class="form-field">
             <label>Map Embed URL</label>
             <input type="url" name="mapEmbed" id="fieldMapEmbed">
           </div>
@@ -150,11 +149,7 @@
           <div class="form-field">
             <label>Today's Specialty</label>
             <textarea name="specialty" id="fieldSpecialty" rows="5" placeholder="Describe your signature brew..."></textarea>
-            <p class="field-hint">This appears prominently on the customer page.</p>
-          </div>
-          <div class="form-field">
-            <label>Specialty Image URL</label>
-            <input type="url" name="specialtyImage" id="fieldSpecialtyImage" placeholder="https://...">
+            <p class="field-hint">This appears prominently on the customer page. Edit the specialty image in the Images tab.</p>
           </div>
           <div class="preview-card">
             <span class="preview-label">Preview</span>
@@ -188,6 +183,48 @@
         </form>
       </section>
 
+      <!-- Images Tab -->
+      <section class="tab-panel" id="tab-images">
+        <form class="admin-form" id="imagesForm">
+          <p class="field-hint" style="margin-bottom: 20px;">Upload images or paste URLs. Changes appear on the customer page immediately after saving.</p>
+
+          <div class="image-edit-card">
+            <label>Hero Image</label>
+            <div class="image-edit-row">
+              <div class="image-preview-wrap">
+                <img id="previewHero" src="" alt="Hero preview" class="image-preview">
+              </div>
+              <div class="image-edit-fields">
+                <input type="url" id="fieldHeroImageUrl" placeholder="https://... or upload below">
+                <input type="file" id="uploadHero" accept="image/*" class="file-input">
+                <button type="button" class="btn btn-outline btn-sm" data-upload="hero">Upload Hero</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="image-edit-card">
+            <label>Specialty Image</label>
+            <div class="image-edit-row">
+              <div class="image-preview-wrap">
+                <img id="previewSpecialty" src="" alt="Specialty preview" class="image-preview">
+              </div>
+              <div class="image-edit-fields">
+                <input type="url" id="fieldSpecialtyImageUrl" placeholder="https://... or upload below">
+                <input type="file" id="uploadSpecialty" accept="image/*" class="file-input">
+                <button type="button" class="btn btn-outline btn-sm" data-upload="specialty">Upload Specialty</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="image-edit-card">
+            <label>Gallery Images</label>
+            <div class="gallery-editor" id="galleryEditor"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Save All Images</button>
+        </form>
+      </section>
+
       <!-- Pros Tab -->
       <section class="tab-panel" id="tab-pros">
         <div class="pros-editor" id="prosEditor"></div>
@@ -203,6 +240,7 @@
             <span class="stat-label">Total Subscribers</span>
           </div>
         </div>
+        <p class="field-hint" style="margin-bottom: 16px;">Registered emails appear here automatically. Use <strong>Revoke</strong> to delete a code so the email can register again (for testing the mail function).</p>
         <div class="table-container">
           <table class="data-table">
             <thead>
@@ -212,11 +250,13 @@
                 <th>Discount</th>
                 <th>Subscribed</th>
                 <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="subscribersTable"></tbody>
           </table>
         </div>
+        <button class="btn btn-outline btn-sm" id="refreshSubscribersBtn" style="margin-top: 16px;">Refresh List</button>
       </section>
 
       <!-- System Log Tab -->

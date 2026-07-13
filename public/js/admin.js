@@ -6,6 +6,7 @@ const TAB_TITLES = {
   'shop-info': 'Shop Info',
   specialty: 'Specialty',
   discount: 'Discount & Email',
+  images: 'Images',
   pros: 'Why Us / Pros',
   subscribers: 'Subscribers',
   logs: 'System Log'
@@ -210,13 +211,12 @@ function populateForms(data) {
   document.getElementById('fieldAddress').value = data.contact?.address || '';
   document.getElementById('fieldHoursWeekdays').value = data.hours?.weekdays || '';
   document.getElementById('fieldHoursWeekends').value = data.hours?.weekends || '';
-  document.getElementById('fieldHeroImage').value = data.heroImage || '';
   document.getElementById('fieldMapEmbed').value = data.mapEmbed || '';
   document.getElementById('fieldSpecialty').value = data.specialty || '';
-  document.getElementById('fieldSpecialtyImage').value = data.specialtyImage || '';
   document.getElementById('fieldDiscountPercent').value = data.discountPercent || 20;
   document.getElementById('fieldDiscountMessage').value = data.discountMessage || '';
 
+  populateImageEditor(data);
   updateSpecialtyPreview();
   updateEmailPreview();
   renderProsEditor(data.pros || []);
@@ -253,7 +253,6 @@ function initForms() {
         weekdays: document.getElementById('fieldHoursWeekdays').value,
         weekends: document.getElementById('fieldHoursWeekends').value
       },
-      heroImage: document.getElementById('fieldHeroImage').value,
       mapEmbed: document.getElementById('fieldMapEmbed').value
     });
   });
@@ -261,8 +260,7 @@ function initForms() {
   document.getElementById('specialtyForm').addEventListener('submit', (e) => {
     e.preventDefault();
     saveShopData({
-      specialty: document.getElementById('fieldSpecialty').value,
-      specialtyImage: document.getElementById('fieldSpecialtyImage').value
+      specialty: document.getElementById('fieldSpecialty').value
     });
   });
 
@@ -286,8 +284,11 @@ function initForms() {
   });
 
   document.getElementById('refreshLogsBtn').addEventListener('click', loadLogs);
+  document.getElementById('refreshSubscribersBtn')?.addEventListener('click', loadSubscribers);
   document.getElementById('logCategoryFilter').addEventListener('change', loadLogs);
   document.getElementById('logLevelFilter').addEventListener('change', loadLogs);
+
+  initImageEditor();
 }
 
 async function saveShopData(updates) {
@@ -345,7 +346,7 @@ async function loadSubscribers() {
 
     const tbody = document.getElementById('subscribersTable');
     if (subs.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;">No subscribers yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;">No subscribers yet.</td></tr>';
       return;
     }
 
@@ -356,10 +357,217 @@ async function loadSubscribers() {
         <td>${s.discountPercent}%</td>
         <td>${new Date(s.subscribedAt).toLocaleString()}</td>
         <td><span class="badge ${s.used ? 'badge-used' : 'badge-active'}">${s.used ? 'Used' : 'Active'}</span></td>
+        <td><button type="button" class="btn btn-outline btn-sm btn-revoke" data-email="${escapeHtml(s.email)}">Revoke</button></td>
       </tr>
     `).join('');
+
+    tbody.querySelectorAll('.btn-revoke').forEach(btn => {
+      btn.addEventListener('click', () => revokeSubscriber(btn.dataset.email));
+    });
   } catch (err) {
     console.error('Failed to load subscribers:', err);
+  }
+}
+
+async function revokeSubscriber(email) {
+  if (!confirm(`Revoke the discount code for ${email}?\n\nThis deletes their registration so they can sign up again to test the email function.`)) {
+    return;
+  }
+  try {
+    const res = await apiFetch(`/api/admin/subscribers/${encodeURIComponent(email)}/revoke`, {
+      method: 'DELETE'
+    });
+    const data = await res.json();
+    if (res.ok) {
+      loadSubscribers();
+      const statusEl = document.getElementById('saveStatus');
+      statusEl.textContent = data.message || 'Code revoked';
+      statusEl.className = 'status-badge success';
+      setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'status-badge'; }, 4000);
+    } else {
+      alert(data.error || 'Failed to revoke code.');
+    }
+  } catch {
+    alert('Failed to revoke code.');
+  }
+}
+
+function populateImageEditor(data) {
+  const heroUrl = data.heroImage || '';
+  const specialtyUrl = data.specialtyImage || '';
+  document.getElementById('fieldHeroImageUrl').value = heroUrl;
+  document.getElementById('fieldSpecialtyImageUrl').value = specialtyUrl;
+  setPreviewImage('previewHero', heroUrl);
+  setPreviewImage('previewSpecialty', specialtyUrl);
+  renderGalleryEditor(data.galleryImages || []);
+}
+
+function setPreviewImage(imgId, url) {
+  const img = document.getElementById(imgId);
+  if (!img) return;
+  if (url) {
+    img.src = url;
+    img.style.display = 'block';
+  } else {
+    img.removeAttribute('src');
+    img.style.display = 'none';
+  }
+}
+
+function renderGalleryEditor(images) {
+  const gallery = [...images];
+  while (gallery.length < 3) gallery.push('');
+
+  const container = document.getElementById('galleryEditor');
+  container.innerHTML = gallery.map((url, i) => `
+    <div class="gallery-edit-item" data-index="${i}">
+      <span class="gallery-edit-label">Image ${i + 1}</span>
+      <div class="image-edit-row">
+        <div class="image-preview-wrap small">
+          <img src="${escapeHtml(url)}" alt="Gallery ${i + 1}" class="image-preview gallery-preview" data-preview="${i}" style="${url ? '' : 'display:none'}">
+        </div>
+        <div class="image-edit-fields">
+          <input type="url" class="gallery-url-input" data-index="${i}" value="${escapeHtml(url)}" placeholder="https://... or upload">
+          <input type="file" accept="image/*" class="file-input gallery-file-input" data-index="${i}">
+          <button type="button" class="btn btn-outline btn-sm gallery-upload-btn" data-index="${i}">Upload</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.gallery-url-input').forEach(input => {
+    input.addEventListener('input', () => {
+      const idx = input.dataset.index;
+      const preview = container.querySelector(`[data-preview="${idx}"]`);
+      if (input.value) {
+        preview.src = input.value;
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+    });
+  });
+
+  container.querySelectorAll('.gallery-upload-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = btn.dataset.index;
+      const fileInput = container.querySelector(`.gallery-file-input[data-index="${idx}"]`);
+      if (fileInput?.files?.[0]) {
+        uploadImageFile(fileInput.files[0], (url) => {
+          const urlInput = container.querySelector(`.gallery-url-input[data-index="${idx}"]`);
+          urlInput.value = url;
+          urlInput.dispatchEvent(new Event('input'));
+        });
+      } else {
+        fileInput?.click();
+      }
+    });
+  });
+
+  container.querySelectorAll('.gallery-file-input').forEach(input => {
+    input.addEventListener('change', () => {
+      if (!input.files?.[0]) return;
+      const idx = input.dataset.index;
+      uploadImageFile(input.files[0], (url) => {
+        const urlInput = container.querySelector(`.gallery-url-input[data-index="${idx}"]`);
+        urlInput.value = url;
+        urlInput.dispatchEvent(new Event('input'));
+      });
+    });
+  });
+}
+
+function getGalleryUrls() {
+  return Array.from(document.querySelectorAll('.gallery-url-input'))
+    .map(input => input.value.trim())
+    .filter(Boolean);
+}
+
+function initImageEditor() {
+  document.getElementById('fieldHeroImageUrl')?.addEventListener('input', (e) => {
+    setPreviewImage('previewHero', e.target.value);
+  });
+  document.getElementById('fieldSpecialtyImageUrl')?.addEventListener('input', (e) => {
+    setPreviewImage('previewSpecialty', e.target.value);
+  });
+
+  document.querySelector('[data-upload="hero"]')?.addEventListener('click', () => {
+    const fileInput = document.getElementById('uploadHero');
+    if (fileInput?.files?.[0]) {
+      uploadImageFile(fileInput.files[0], (url) => {
+        document.getElementById('fieldHeroImageUrl').value = url;
+        setPreviewImage('previewHero', url);
+      });
+    } else {
+      fileInput?.click();
+    }
+  });
+
+  document.getElementById('uploadHero')?.addEventListener('change', (e) => {
+    if (!e.target.files?.[0]) return;
+    uploadImageFile(e.target.files[0], (url) => {
+      document.getElementById('fieldHeroImageUrl').value = url;
+      setPreviewImage('previewHero', url);
+    });
+  });
+
+  document.querySelector('[data-upload="specialty"]')?.addEventListener('click', () => {
+    const fileInput = document.getElementById('uploadSpecialty');
+    if (fileInput?.files?.[0]) {
+      uploadImageFile(fileInput.files[0], (url) => {
+        document.getElementById('fieldSpecialtyImageUrl').value = url;
+        setPreviewImage('previewSpecialty', url);
+      });
+    } else {
+      fileInput?.click();
+    }
+  });
+
+  document.getElementById('uploadSpecialty')?.addEventListener('change', (e) => {
+    if (!e.target.files?.[0]) return;
+    uploadImageFile(e.target.files[0], (url) => {
+      document.getElementById('fieldSpecialtyImageUrl').value = url;
+      setPreviewImage('previewSpecialty', url);
+    });
+  });
+
+  document.getElementById('imagesForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveShopData({
+      heroImage: document.getElementById('fieldHeroImageUrl').value,
+      specialtyImage: document.getElementById('fieldSpecialtyImageUrl').value,
+      galleryImages: getGalleryUrls()
+    });
+  });
+}
+
+async function uploadImageFile(file, onSuccess) {
+  const statusEl = document.getElementById('saveStatus');
+  statusEl.textContent = 'Uploading...';
+  statusEl.className = 'status-badge';
+
+  const formData = new FormData();
+  formData.append('image', file);
+
+  try {
+    const res = await fetch('/api/admin/upload', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${authToken}` },
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok && data.url) {
+      onSuccess(data.url);
+      statusEl.textContent = 'Uploaded ✓';
+      statusEl.className = 'status-badge success';
+      setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'status-badge'; }, 3000);
+    } else {
+      statusEl.textContent = data.error || 'Upload failed';
+      statusEl.className = 'status-badge error';
+    }
+  } catch {
+    statusEl.textContent = 'Upload failed';
+    statusEl.className = 'status-badge error';
   }
 }
 

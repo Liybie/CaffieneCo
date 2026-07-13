@@ -15,6 +15,9 @@ let preloaderDone = false;
 let dataLoaded = false;
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const locked = await checkSiteLock();
+  if (locked) return;
+
   initPreloader();
   initCursor();
   initMobileMenu();
@@ -80,6 +83,18 @@ function tryFinishPreloader() {
 }
 
 /* ---- Data ---- */
+async function checkSiteLock() {
+  try {
+    const res = await fetch('/api/auth/status');
+    const data = await res.json();
+    if (data.locked) {
+      window.location.href = '/locked.html';
+      return true;
+    }
+  } catch { /* continue if status check fails */ }
+  return false;
+}
+
 async function loadShopData() {
   try {
     const res = await fetch('/api/shop');
