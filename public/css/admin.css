@@ -674,6 +674,61 @@
   color: var(--color-text-muted);
 }
 
+/* ===== Subscriber / code search ===== */
+.discount-lookup-card {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(200, 169, 126, 0.15);
+}
+
+.lookup-title {
+  font-family: var(--font-display, Georgia, serif);
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: var(--color-primary);
+}
+
+.subscriber-search-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 16px 0 8px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--color-bg-secondary);
+  border: 1px solid rgba(200, 169, 126, 0.2);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 14px;
+  min-height: 44px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.search-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 12px;
+}
+
+.lookup-empty {
+  text-align: center;
+  padding: 24px !important;
+  color: var(--color-text-muted);
+}
+
+.lookup-table code {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 968px) {
   .sidebar { width: 220px; }
@@ -814,6 +869,15 @@
   }
 
   .location-actions .btn {
+    width: 100%;
+  }
+
+  .subscriber-search-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .subscriber-search-row .btn {
     width: 100%;
   }
 }

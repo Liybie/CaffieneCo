@@ -16,6 +16,7 @@ const TAB_TITLES = {
 let locationMap = null;
 let locationMarker = null;
 let locationMapReady = false;
+let allSubscribers = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   checkAuthStatus();
@@ -174,6 +175,7 @@ function initTabs() {
       document.getElementById('tabTitle').textContent = TAB_TITLES[tab] || tab;
 
       if (tab === 'subscribers') loadSubscribers();
+      if (tab === 'discount') ensureSubscribersLoaded().then(() => renderDiscountLookup());
       if (tab === 'logs') loadLogs();
       if (tab === 'location') initLocationMap();
     });
@@ -290,6 +292,9 @@ function initForms() {
 
   document.getElementById('refreshLogsBtn').addEventListener('click', loadLogs);
   document.getElementById('refreshSubscribersBtn')?.addEventListener('click', loadSubscribers);
+  document.getElementById('refreshDiscountLookupBtn')?.addEventListener('click', () => loadSubscribers(true));
+  document.getElementById('subscriberSearch')?.addEventListener('input', () => renderSubscribersTable());
+  document.getElementById('discountCodeSearch')?.addEventListener('input', renderDiscountLookup);
   document.getElementById('logCategoryFilter').addEventListener('change', loadLogs);
   document.getElementById('logLevelFilter').addEventListener('change', loadLogs);
 
@@ -344,34 +349,112 @@ function getProsFromEditor() {
   }));
 }
 
-async function loadSubscribers() {
+async function ensureSubscribersLoaded(force = false) {
+  if (!force && allSubscribers.length) return allSubscribers;
+  return loadSubscribers(force);
+}
+
+function filterSubscribers(list, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return list;
+  return list.filter(s =>
+    s.email.toLowerCase().includes(q) ||
+    s.code.toLowerCase().includes(q) ||
+    String(s.discountPercent).includes(q)
+  );
+}
+
+function subscriberRowHtml(s, { showRevoke = false } = {}) {
+  const revokeCell = showRevoke
+    ? `<td><button type="button" class="btn btn-outline btn-sm btn-revoke" data-email="${escapeHtml(s.email)}">Revoke</button></td>`
+    : '';
+  return `
+    <tr>
+      <td>${escapeHtml(s.email)}</td>
+      <td><code>${escapeHtml(s.code)}</code></td>
+      <td>${s.discountPercent}%</td>
+      <td>${new Date(s.subscribedAt).toLocaleString()}</td>
+      <td><span class="badge ${s.used ? 'badge-used' : 'badge-active'}">${s.used ? 'Used' : 'Active'}</span></td>
+      ${revokeCell}
+    </tr>
+  `;
+}
+
+function bindRevokeButtons(container) {
+  container?.querySelectorAll('.btn-revoke').forEach(btn => {
+    btn.addEventListener('click', () => revokeSubscriber(btn.dataset.email));
+  });
+}
+
+function renderSubscribersTable() {
+  const query = document.getElementById('subscriberSearch')?.value || '';
+  const filtered = filterSubscribers(allSubscribers, query);
+  const tbody = document.getElementById('subscribersTable');
+  const meta = document.getElementById('subscriberSearchMeta');
+
+  document.getElementById('subscriberCount').textContent = allSubscribers.length;
+
+  if (meta) {
+    meta.textContent = query
+      ? `Showing ${filtered.length} of ${allSubscribers.length} subscriber(s) matching “${query}”`
+      : `${allSubscribers.length} subscriber(s) total`;
+  }
+
+  if (!tbody) return;
+
+  if (allSubscribers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;">No subscribers yet.</td></tr>';
+    return;
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;">No matches for your search.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(s => subscriberRowHtml(s, { showRevoke: true })).join('');
+  bindRevokeButtons(tbody);
+}
+
+function renderDiscountLookup() {
+  const query = document.getElementById('discountCodeSearch')?.value || '';
+  const filtered = filterSubscribers(allSubscribers, query);
+  const tbody = document.getElementById('discountLookupTable');
+  const meta = document.getElementById('discountLookupMeta');
+
+  if (meta) {
+    meta.textContent = query
+      ? `${filtered.length} match(es) for “${query}”`
+      : allSubscribers.length
+        ? `${allSubscribers.length} code(s) on file — type to search`
+        : 'No discount codes yet';
+  }
+
+  if (!tbody) return;
+
+  if (allSubscribers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="lookup-empty">No discount codes yet.</td></tr>';
+    return;
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="lookup-empty">No matches found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(s => subscriberRowHtml(s, { showRevoke: false })).join('');
+}
+
+async function loadSubscribers(force = false) {
   try {
     const res = await apiFetch('/api/admin/subscribers');
-    const subs = await res.json();
-    document.getElementById('subscriberCount').textContent = subs.length;
-
-    const tbody = document.getElementById('subscribersTable');
-    if (subs.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;">No subscribers yet.</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = subs.map(s => `
-      <tr>
-        <td>${escapeHtml(s.email)}</td>
-        <td><code>${s.code}</code></td>
-        <td>${s.discountPercent}%</td>
-        <td>${new Date(s.subscribedAt).toLocaleString()}</td>
-        <td><span class="badge ${s.used ? 'badge-used' : 'badge-active'}">${s.used ? 'Used' : 'Active'}</span></td>
-        <td><button type="button" class="btn btn-outline btn-sm btn-revoke" data-email="${escapeHtml(s.email)}">Revoke</button></td>
-      </tr>
-    `).join('');
-
-    tbody.querySelectorAll('.btn-revoke').forEach(btn => {
-      btn.addEventListener('click', () => revokeSubscriber(btn.dataset.email));
-    });
+    allSubscribers = await res.json();
+    renderSubscribersTable();
+    renderDiscountLookup();
+    return allSubscribers;
   } catch (err) {
     console.error('Failed to load subscribers:', err);
+    return [];
   }
 }
 
