@@ -6,7 +6,7 @@ const TAB_TITLES = {
   'shop-info': 'Shop Info',
   location: 'Location / Map',
   specialty: 'Specialty',
-  discount: 'Discount & Email',
+  discount: 'Discount',
   images: 'Images',
   pros: 'Why Us / Pros',
   subscribers: 'Subscribers',
