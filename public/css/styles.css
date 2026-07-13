@@ -2072,6 +2072,10 @@ a { color: inherit; text-decoration: none; }
     font-size: 20px;
     margin-bottom: 24px;
   }
+  .map-frame iframe {
+    min-height: 240px;
+  }
+
   .visit-side .btn {
     width: 100%;
     min-height: 48px;
