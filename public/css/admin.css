@@ -627,17 +627,123 @@
   .admin-form .form-row { grid-template-columns: 1fr; }
   .pro-edit-card { grid-template-columns: 1fr; }
   .log-entry { grid-template-columns: 1fr; gap: 4px; }
+  .image-edit-row { grid-template-columns: 1fr; }
+  .image-preview-wrap,
+  .image-preview-wrap.small {
+    width: 100%;
+    max-width: 280px;
+    height: 140px;
+  }
 }
 
 @media (max-width: 640px) {
-  .sidebar {
-    position: static;
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
+  .login-card {
+    margin: 16px;
+    padding: 32px 24px;
+    max-width: none;
   }
-  .sidebar-nav { flex-direction: row; flex-wrap: wrap; padding: 8px; }
-  .nav-item { padding: 8px 12px; font-size: 12px; }
-  .main-content { margin-left: 0; }
+
   .admin-dashboard { flex-direction: column; }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    flex-direction: column;
+    border-bottom: 1px solid rgba(200, 169, 126, 0.15);
+  }
+
+  .sidebar-brand {
+    padding: 16px 20px;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 12px 12px;
+    gap: 6px;
+    scrollbar-width: none;
+  }
+  .sidebar-nav::-webkit-scrollbar { display: none; }
+
+  .nav-item {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    font-size: 12px;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+
+  .nav-index { display: none; }
+
+  .sidebar-footer {
+    padding: 12px 16px 16px;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 20px 16px max(24px, env(safe-area-inset-bottom));
+  }
+
+  .content-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .content-header h2 { font-size: 22px; }
+
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+
+  .data-table {
+    min-width: 520px;
+    font-size: 13px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 12px 10px;
+  }
+
+  .stat-card { padding: 20px; }
+
+  .admin-form .btn,
+  .btn-primary,
+  .btn-outline {
+    min-height: 44px;
+  }
+
+  .image-edit-fields .btn {
+    width: 100%;
+  }
+
+  .gallery-edit-item .image-edit-row {
+    gap: 12px;
+  }
+
+  .log-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .log-filters select,
+  .log-filters .btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .pro-edit-card {
+    padding: 16px;
+  }
 }
