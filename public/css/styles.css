@@ -54,7 +54,11 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: hidden; }
 
-html { font-size: 16px; }
+html { font-size: 16px; scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: smooth; }
+}
 
 body {
   font-family: var(--font-body);

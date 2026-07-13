@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initPreloader();
   initCursor();
   initMobileMenu();
+  initSmoothAnchorScroll();
   initDiscountForm();
 
   initBorderGlowElements();
@@ -267,6 +268,38 @@ function initLenis() {
       navbar.classList.remove('hidden-nav');
     }
     lastScroll = scroll;
+  });
+}
+
+function scrollToSection(targetId) {
+  const el = document.getElementById(targetId);
+  if (!el) return;
+
+  const navHeight = document.getElementById('navbar')?.offsetHeight || 72;
+  const offset = -(navHeight + 12);
+
+  if (lenis) {
+    lenis.scrollTo(el, { offset, duration: 1.4 });
+  } else {
+    const top = el.getBoundingClientRect().top + window.scrollY + offset;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
+}
+
+function initSmoothAnchorScroll() {
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href^="#"]');
+    if (!link) return;
+
+    const hash = link.getAttribute('href');
+    if (!hash || hash === '#') return;
+
+    const targetId = hash.slice(1);
+    if (!document.getElementById(targetId)) return;
+
+    e.preventDefault();
+    scrollToSection(targetId);
+    history.pushState(null, '', hash);
   });
 }
 
