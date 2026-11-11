@@ -1723,6 +1723,18 @@ a { color: inherit; text-decoration: none; }
 }
 .footer-admin:hover { opacity: 1; color: var(--panel-text); }
 
+.footer-create-order-wrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+}
+
+.footer-create-order {
+  padding: 10px 22px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
 /* ---- Scroll reveal base ---- */
 .reveal-up {
   opacity: 0;
