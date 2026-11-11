@@ -1,5 +1,25 @@
 gsap.registerPlugin(ScrollTrigger);
 
+const ORDER_CART_KEY = 'caffeine_order_cart';
+
+const ORDER_PRODUCTS = [
+  {
+    id: 'latte',
+    name: 'House Latte',
+    image: '/img/products/latte.svg'
+  },
+  {
+    id: 'croissant',
+    name: 'Butter Croissant',
+    image: '/img/products/croissant.svg'
+  },
+  {
+    id: 'cold-brew',
+    name: 'Cold Brew',
+    image: '/img/products/cold-brew.svg'
+  }
+];
+
 const IMAGE_FALLBACKS = {
   hero: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1920&q=85',
   specialty: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1200&q=85',
@@ -23,6 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initMobileMenu();
   initSmoothAnchorScroll();
   initDiscountForm();
+  initCreateOrder();
 
   initBorderGlowElements();
 
@@ -960,6 +981,266 @@ function initMobileMenu() {
 
   window.addEventListener('resize', () => {
     if (window.matchMedia('(min-width: 769px)').matches) closeMenu();
+  });
+}
+
+/* ---- Pickup order (footer) ---- */
+function defaultOrderQuantities() {
+  return Object.fromEntries(ORDER_PRODUCTS.map(p => [p.id, 0]));
+}
+
+function readOrderCart() {
+  try {
+    const raw = localStorage.getItem(ORDER_CART_KEY);
+    const base = {
+      quantities: defaultOrderQuantities(),
+      notes: '',
+      contact: '',
+      name: ''
+    };
+    if (!raw) return base;
+    const parsed = JSON.parse(raw);
+    const quantities = { ...base.quantities };
+    if (parsed.quantities && typeof parsed.quantities === 'object') {
+      ORDER_PRODUCTS.forEach(p => {
+        const n = parseInt(parsed.quantities[p.id], 10);
+        if (Number.isFinite(n) && n > 0) quantities[p.id] = Math.min(n, 99);
+      });
+    } else if (typeof parsed.items === 'string' && parsed.items) {
+      /* legacy draft: keep as notes hint only */
+      base.notes = parsed.items;
+    }
+    return {
+      quantities,
+      notes: typeof parsed.notes === 'string' ? parsed.notes : (typeof parsed.items === 'string' ? parsed.items : ''),
+      contact: typeof parsed.contact === 'string' ? parsed.contact : '',
+      name: typeof parsed.name === 'string' ? parsed.name : ''
+    };
+  } catch {
+    return {
+      quantities: defaultOrderQuantities(),
+      notes: '',
+      contact: '',
+      name: ''
+    };
+  }
+}
+
+function writeOrderCart(draft) {
+  try {
+    localStorage.setItem(ORDER_CART_KEY, JSON.stringify(draft));
+  } catch { /* quota or private mode */ }
+}
+
+function clearOrderCart() {
+  try {
+    localStorage.removeItem(ORDER_CART_KEY);
+  } catch { /* ignore */ }
+}
+
+function orderLinesFromQuantities(quantities) {
+  return ORDER_PRODUCTS
+    .filter(p => (quantities[p.id] || 0) > 0)
+    .map(p => `${quantities[p.id]}× ${p.name}`);
+}
+
+function buildOrderItemsText(quantities, notes) {
+  const lines = orderLinesFromQuantities(quantities);
+  const trimmedNotes = (notes || '').trim();
+  if (!lines.length && trimmedNotes) return trimmedNotes;
+  if (lines.length && trimmedNotes) return `${lines.join(', ')} — ${trimmedNotes}`;
+  return lines.join(', ');
+}
+
+function renderOrderProductsTable() {
+  const tbody = document.getElementById('orderProductsBody');
+  if (!tbody || tbody.children.length) return;
+
+  const row = document.createElement('tr');
+  ORDER_PRODUCTS.forEach((p) => {
+    const cell = document.createElement('td');
+    cell.className = 'order-product-cell';
+    cell.dataset.productId = p.id;
+    cell.innerHTML = `
+      <figure class="order-product-card">
+        <img class="order-product-img" src="${sanitizeUrl(p.image)}" alt="${escapeHtml(p.name)}" width="88" height="70" loading="lazy" decoding="async">
+        <figcaption class="order-product-name">${escapeHtml(p.name)}</figcaption>
+        <div class="order-product-qty">
+          <button type="button" class="order-qty-btn" data-dec="${p.id}" aria-label="Remove one ${escapeHtml(p.name)}">−</button>
+          <span data-qty>0</span>
+          <button type="button" class="order-qty-btn" data-inc="${p.id}" aria-label="Add one ${escapeHtml(p.name)}">+</button>
+        </div>
+      </figure>
+    `;
+    row.appendChild(cell);
+  });
+  tbody.appendChild(row);
+}
+
+function initCreateOrder() {
+  const toggleBtn = document.getElementById('createOrderBtn');
+  const panel = document.getElementById('orderPanel');
+  const form = document.getElementById('orderForm');
+  const productsBody = document.getElementById('orderProductsBody');
+  if (!toggleBtn || !panel || !form) return;
+
+  const itemsInput = document.getElementById('orderItems');
+  const notesInput = document.getElementById('orderNotes');
+  const nameInput = document.getElementById('orderName');
+  const contactInput = document.getElementById('orderContact');
+  const cartSummary = document.getElementById('orderCartSummary');
+  const messageEl = document.getElementById('orderMessage');
+  const submitBtn = document.getElementById('orderSubmitBtn');
+
+  const draft = readOrderCart();
+  let quantities = { ...draft.quantities };
+
+  if (notesInput && draft.notes) notesInput.value = draft.notes;
+  if (nameInput && draft.name) nameInput.value = draft.name;
+  if (contactInput && draft.contact) contactInput.value = draft.contact;
+
+  const syncItemsField = () => {
+    const text = buildOrderItemsText(quantities, notesInput?.value || '');
+    if (itemsInput) itemsInput.value = text;
+    return text;
+  };
+
+  const updateCartSummary = () => {
+    const lines = orderLinesFromQuantities(quantities);
+    if (!cartSummary) return;
+    if (!lines.length) {
+      cartSummary.textContent = '';
+      cartSummary.classList.add('hidden');
+      return;
+    }
+    cartSummary.textContent = lines.join(' · ');
+    cartSummary.classList.remove('hidden');
+  };
+
+  const refreshProductTable = () => {
+    if (!productsBody) return;
+    productsBody.querySelectorAll('[data-product-id]').forEach((cell) => {
+      const id = cell.dataset.productId;
+      const qty = quantities[id] || 0;
+      const qtyEl = cell.querySelector('[data-qty]');
+      if (qtyEl) qtyEl.textContent = String(qty);
+      cell.classList.toggle('is-selected', qty > 0);
+    });
+  };
+
+  const persistDraft = () => {
+    syncItemsField();
+    writeOrderCart({
+      quantities,
+      notes: notesInput?.value.trim() || '',
+      name: nameInput?.value.trim() || '',
+      contact: contactInput?.value.trim() || ''
+    });
+  };
+
+  const changeQty = (productId, delta) => {
+    const next = Math.max(0, Math.min(99, (quantities[productId] || 0) + delta));
+    quantities[productId] = next;
+    syncItemsField();
+    updateCartSummary();
+    refreshProductTable();
+    persistDraft();
+  };
+
+  renderOrderProductsTable();
+
+  productsBody?.addEventListener('click', (e) => {
+    const incBtn = e.target.closest('[data-inc]');
+    const decBtn = e.target.closest('[data-dec]');
+    if (incBtn) changeQty(incBtn.dataset.inc, 1);
+    else if (decBtn) changeQty(decBtn.dataset.dec, -1);
+  });
+
+  syncItemsField();
+  updateCartSummary();
+  refreshProductTable();
+
+  [notesInput, nameInput, contactInput].forEach(el => {
+    el?.addEventListener('input', () => {
+      syncItemsField();
+      persistDraft();
+    });
+  });
+
+  const setPanelOpen = (open) => {
+    panel.classList.toggle('hidden', !open);
+    panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggleBtn.textContent = open ? 'Close order' : 'Create order';
+    toggleBtn.setAttribute('aria-label', open ? 'Close order form' : 'Create order');
+    if (open) {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      window.setTimeout(() => contactInput?.focus(), 350);
+    }
+  };
+
+  toggleBtn.addEventListener('click', () => {
+    setPanelOpen(panel.classList.contains('hidden'));
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !panel.classList.contains('hidden')) {
+      setPanelOpen(false);
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const items = syncItemsField();
+    const contact = contactInput?.value.trim() || '';
+    const name = nameInput?.value.trim() || '';
+
+    if (!items || !contact) {
+      messageEl?.classList.remove('hidden', 'success');
+      messageEl?.classList.add('error');
+      messageEl.textContent = !items ? 'Add at least one item.' : 'Email or phone is required.';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.querySelector('.btn-text')?.classList.add('hidden');
+    submitBtn.querySelector('.btn-loader')?.classList.remove('hidden');
+    messageEl?.classList.add('hidden');
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, contact, name })
+      });
+      const data = await res.json();
+
+      messageEl?.classList.remove('hidden', 'success', 'error');
+      if (res.ok) {
+        messageEl?.classList.add('success');
+        messageEl.textContent = data.message || 'Order received!';
+        clearOrderCart();
+        quantities = defaultOrderQuantities();
+        form.reset();
+        syncItemsField();
+        updateCartSummary();
+        refreshProductTable();
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof gsap !== 'undefined') {
+          gsap.from(messageEl, { opacity: 0, y: 8, duration: 0.4 });
+        }
+      } else {
+        messageEl?.classList.add('error');
+        messageEl.textContent = data.error || 'Could not submit order.';
+      }
+    } catch {
+      messageEl?.classList.remove('hidden');
+      messageEl?.classList.add('error');
+      messageEl.textContent = 'Network error. Please try again.';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.querySelector('.btn-text')?.classList.remove('hidden');
+      submitBtn.querySelector('.btn-loader')?.classList.add('hidden');
+    }
   });
 }
 
