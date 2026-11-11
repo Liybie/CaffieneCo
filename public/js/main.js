@@ -1,5 +1,7 @@
 gsap.registerPlugin(ScrollTrigger);
 
+const ORDER_CART_KEY = 'caffeine_order_cart';
+
 const IMAGE_FALLBACKS = {
   hero: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1920&q=85',
   specialty: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1200&q=85',
@@ -23,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initMobileMenu();
   initSmoothAnchorScroll();
   initDiscountForm();
+  initCreateOrder();
 
   initBorderGlowElements();
 
@@ -960,6 +963,134 @@ function initMobileMenu() {
 
   window.addEventListener('resize', () => {
     if (window.matchMedia('(min-width: 769px)').matches) closeMenu();
+  });
+}
+
+/* ---- Pickup order (footer) ---- */
+function readOrderCart() {
+  try {
+    const raw = localStorage.getItem(ORDER_CART_KEY);
+    if (!raw) return { items: '', contact: '', name: '' };
+    const parsed = JSON.parse(raw);
+    return {
+      items: typeof parsed.items === 'string' ? parsed.items : '',
+      contact: typeof parsed.contact === 'string' ? parsed.contact : '',
+      name: typeof parsed.name === 'string' ? parsed.name : ''
+    };
+  } catch {
+    return { items: '', contact: '', name: '' };
+  }
+}
+
+function writeOrderCart(draft) {
+  try {
+    localStorage.setItem(ORDER_CART_KEY, JSON.stringify(draft));
+  } catch { /* quota or private mode */ }
+}
+
+function clearOrderCart() {
+  try {
+    localStorage.removeItem(ORDER_CART_KEY);
+  } catch { /* ignore */ }
+}
+
+function initCreateOrder() {
+  const toggleBtn = document.getElementById('createOrderBtn');
+  const panel = document.getElementById('orderPanel');
+  const form = document.getElementById('orderForm');
+  if (!toggleBtn || !panel || !form) return;
+
+  const itemsInput = document.getElementById('orderItems');
+  const nameInput = document.getElementById('orderName');
+  const contactInput = document.getElementById('orderContact');
+  const messageEl = document.getElementById('orderMessage');
+  const submitBtn = document.getElementById('orderSubmitBtn');
+
+  const draft = readOrderCart();
+  if (itemsInput && draft.items) itemsInput.value = draft.items;
+  if (nameInput && draft.name) nameInput.value = draft.name;
+  if (contactInput && draft.contact) contactInput.value = draft.contact;
+
+  const persistDraft = () => {
+    writeOrderCart({
+      items: itemsInput?.value.trim() || '',
+      name: nameInput?.value.trim() || '',
+      contact: contactInput?.value.trim() || ''
+    });
+  };
+
+  [itemsInput, nameInput, contactInput].forEach(el => {
+    el?.addEventListener('input', persistDraft);
+  });
+
+  const setPanelOpen = (open) => {
+    panel.classList.toggle('hidden', !open);
+    panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggleBtn.textContent = open ? 'Close order' : 'Create order';
+    toggleBtn.setAttribute('aria-label', open ? 'Close order form' : 'Create order');
+    if (open) {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      window.setTimeout(() => {
+        if (itemsInput && !itemsInput.value.trim()) itemsInput.focus();
+        else contactInput?.focus();
+      }, 400);
+    }
+  };
+
+  toggleBtn.addEventListener('click', () => {
+    setPanelOpen(panel.classList.contains('hidden'));
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !panel.classList.contains('hidden')) {
+      setPanelOpen(false);
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const items = itemsInput?.value.trim() || '';
+    const contact = contactInput?.value.trim() || '';
+    const name = nameInput?.value.trim() || '';
+
+    if (!items || !contact) return;
+
+    submitBtn.disabled = true;
+    submitBtn.querySelector('.btn-text')?.classList.add('hidden');
+    submitBtn.querySelector('.btn-loader')?.classList.remove('hidden');
+    messageEl?.classList.add('hidden');
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, contact, name })
+      });
+      const data = await res.json();
+
+      messageEl?.classList.remove('hidden', 'success', 'error');
+      if (res.ok) {
+        messageEl?.classList.add('success');
+        messageEl.textContent = data.message || 'Order received!';
+        clearOrderCart();
+        form.reset();
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof gsap !== 'undefined') {
+          gsap.from(messageEl, { opacity: 0, y: 8, duration: 0.4 });
+        }
+      } else {
+        messageEl?.classList.add('error');
+        messageEl.textContent = data.error || 'Could not submit order.';
+      }
+    } catch {
+      messageEl?.classList.remove('hidden');
+      messageEl?.classList.add('error');
+      messageEl.textContent = 'Network error. Please try again.';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.querySelector('.btn-text')?.classList.remove('hidden');
+      submitBtn.querySelector('.btn-loader')?.classList.add('hidden');
+    }
   });
 }
 

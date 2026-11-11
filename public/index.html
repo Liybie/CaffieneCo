@@ -317,7 +317,36 @@
       <a href="/admin" class="footer-admin">Admin</a>
     </div>
     <div class="container-wide footer-create-order-wrap">
-      <button type="button" class="btn btn-ghost footer-create-order" aria-label="Create order">Create order</button>
+      <button
+        type="button"
+        class="btn btn-ghost footer-create-order"
+        id="createOrderBtn"
+        aria-label="Create order"
+        aria-expanded="false"
+        aria-controls="orderPanel"
+      >Create order</button>
+    </div>
+    <div class="container-wide footer-order-panel hidden" id="orderPanel" aria-hidden="true">
+      <form class="footer-order-form" id="orderForm" novalidate>
+        <p class="footer-order-lead">Pickup order — we will confirm by email or phone.</p>
+        <label class="visually-hidden" for="orderItems">Order items</label>
+        <textarea
+          id="orderItems"
+          name="items"
+          rows="2"
+          required
+          placeholder="What would you like? (e.g. 2 lattes, 1 croissant)"
+        ></textarea>
+        <span class="visually-hidden" id="orderNameLabel">Your name</span>
+        <input type="text" id="orderName" name="name" placeholder="Name (optional)" autocomplete="name" aria-labelledby="orderNameLabel">
+        <label class="visually-hidden" for="orderContact">Email or phone</label>
+        <input type="text" id="orderContact" name="contact" required placeholder="Email or phone" autocomplete="email">
+        <button type="submit" class="btn btn-fill" id="orderSubmitBtn">
+          <span class="btn-text">Submit order</span>
+          <span class="btn-loader hidden"></span>
+        </button>
+        <div class="form-message hidden" id="orderMessage" role="status"></div>
+      </form>
     </div>
   </footer>
 

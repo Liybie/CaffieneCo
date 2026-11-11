@@ -8,6 +8,7 @@ const SUBSCRIBERS_FILE = path.join(DATA_DIR, 'subscribers.json');
 const LOG_FILE = path.join(DATA_DIR, 'system-log.json');
 const AUTH_STATE_FILE = path.join(DATA_DIR, 'auth-state.json');
 const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
+const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 
 const DEFAULT_SHOP_DATA = {
   shopName: 'Caffeine Co.',
@@ -88,6 +89,19 @@ function createJsonStore() {
       subscribers[index].used = Boolean(used);
       writeJSON(SUBSCRIBERS_FILE, subscribers);
       return subscribers[index];
+    },
+
+    async addOrder(order) {
+      const orders = readJSON(ORDERS_FILE, []);
+      const entry = {
+        id: uuidv4(),
+        ...order,
+        createdAt: new Date().toISOString(),
+        status: 'pending'
+      };
+      orders.unshift(entry);
+      writeJSON(ORDERS_FILE, orders);
+      return entry;
     },
 
     async addLog(level, category, message, meta = {}) {

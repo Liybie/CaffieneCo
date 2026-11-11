@@ -115,6 +115,20 @@ function createSupabaseStore(url, serviceKey) {
       return mapSubscriber(data);
     },
 
+    async addOrder(order) {
+      const entry = {
+        id: uuidv4(),
+        ...order,
+        createdAt: new Date().toISOString(),
+        status: 'pending'
+      };
+      await this.addLog('info', 'order', `Pickup order ${entry.id.slice(0, 8)} from ${order.contact}`, {
+        orderId: entry.id,
+        order: entry
+      });
+      return entry;
+    },
+
     async addLog(level, category, message, meta = {}) {
       const entry = {
         id: uuidv4(),

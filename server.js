@@ -197,6 +197,77 @@ app.get('/api/shop', async (req, res) => {
   }
 });
 
+function isValidOrderContact(contact) {
+  if (!contact || typeof contact !== 'string') return false;
+  const trimmed = contact.trim();
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return true;
+  const digits = trimmed.replace(/\D/g, '');
+  return digits.length >= 7;
+}
+
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { name, contact, items, notes } = req.body;
+    const trimmedItems = typeof items === 'string' ? items.trim() : '';
+    const trimmedContact = typeof contact === 'string' ? contact.trim() : '';
+
+    if (!trimmedItems) {
+      return res.status(400).json({ error: 'Please describe what you would like to order.' });
+    }
+    if (!isValidOrderContact(trimmedContact)) {
+      return res.status(400).json({ error: 'Please enter a valid email or phone number.' });
+    }
+
+    const db = getStore();
+    const shopData = await db.getShopData();
+    const order = await db.addOrder({
+      name: typeof name === 'string' ? name.trim() : '',
+      contact: trimmedContact,
+      items: trimmedItems,
+      notes: typeof notes === 'string' ? notes.trim() : ''
+    });
+
+    const contactLine = order.name ? `${order.name} (${order.contact})` : order.contact;
+    await addLog('info', 'order', `New pickup order from ${contactLine}`, {
+      orderId: order.id,
+      items: order.items
+    });
+
+    const shopEmail = shopData.contact?.email;
+    if (shopEmail) {
+      const notifyHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+          <h2 style="color: #3d2914;">New pickup order — Caffeine Co.</h2>
+          <p><strong>Order ID:</strong> ${order.id}</p>
+          <p><strong>Guest:</strong> ${escapeHtmlForEmail(contactLine)}</p>
+          <p><strong>Items:</strong></p>
+          <pre style="background: #f5f0e8; padding: 12px; border-radius: 8px; white-space: pre-wrap;">${escapeHtmlForEmail(order.items)}</pre>
+          ${order.notes ? `<p><strong>Notes:</strong> ${escapeHtmlForEmail(order.notes)}</p>` : ''}
+          <p style="color: #666; font-size: 13px;">Submitted: ${new Date(order.createdAt).toLocaleString()}</p>
+        </div>
+      `;
+      await sendEmail(shopEmail, 'New pickup order — Caffeine Co.', notifyHtml);
+    }
+
+    res.json({
+      success: true,
+      orderId: order.id,
+      message: 'Order received! We will confirm pickup details shortly.'
+    });
+  } catch (err) {
+    await addLog('error', 'order', `Order error: ${err.message}`);
+    res.status(500).json({ error: 'Failed to submit order. Please try again.' });
+  }
+});
+
+function escapeHtmlForEmail(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 app.post('/api/subscribe', async (req, res) => {
   try {
     const { email } = req.body;
