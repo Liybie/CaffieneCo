@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" role="img" aria-label="Cold Brew">
+  <rect width="200" height="160" fill="#1a1209"/>
+  <ellipse cx="100" cy="128" rx="40" ry="9" fill="#0d0906" opacity="0.5"/>
+  <rect x="72" y="48" width="56" height="74" rx="4" fill="none" stroke="#c8a97e" stroke-width="2.5"/>
+  <rect x="78" y="58" width="44" height="52" rx="2" fill="#2d1f0f" stroke="#3d2914" stroke-width="1"/>
+  <path d="M78 72h44M78 86h44M78 100h28" stroke="#5a3d1e" stroke-width="1.5" opacity="0.6"/>
+  <rect x="88" y="38" width="24" height="14" rx="3" fill="none" stroke="#e8c99a" stroke-width="2"/>
+  <circle cx="100" cy="36" r="4" fill="#c8a97e"/>
+  <rect x="84" y="54" width="32" height="6" fill="#1a1209" opacity="0.3"/>
+</svg>

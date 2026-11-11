@@ -329,7 +329,9 @@
     <div class="container-wide footer-order-panel hidden" id="orderPanel" aria-hidden="true">
       <form class="footer-order-form" id="orderForm" novalidate>
         <p class="footer-order-lead">Pickup · confirm by email or phone</p>
-        <div class="order-product-grid" id="orderProductGrid" role="list" aria-label="Menu items"></div>
+        <table class="order-products-table" aria-label="Menu items">
+          <tbody id="orderProductsBody"></tbody>
+        </table>
         <p class="order-cart-summary hidden" id="orderCartSummary" aria-live="polite"></p>
         <label class="visually-hidden" for="orderItems">Order items</label>
         <textarea

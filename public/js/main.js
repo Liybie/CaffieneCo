@@ -6,22 +6,17 @@ const ORDER_PRODUCTS = [
   {
     id: 'latte',
     name: 'House Latte',
-    image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=400&q=80'
-  },
-  {
-    id: 'americano',
-    name: 'Americano',
-    image: 'https://images.unsplash.com/photo-1514434751398-939a6d66b3d0?auto=format&fit=crop&w=400&q=80'
+    image: '/img/products/latte.svg'
   },
   {
     id: 'croissant',
     name: 'Butter Croissant',
-    image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=400&q=80'
+    image: '/img/products/croissant.svg'
   },
   {
     id: 'cold-brew',
     name: 'Cold Brew',
-    image: 'https://images.unsplash.com/photo-1517701603999-d9cfa4b0a3c4?auto=format&fit=crop&w=400&q=80'
+    image: '/img/products/cold-brew.svg'
   }
 ];
 
@@ -1057,11 +1052,36 @@ function buildOrderItemsText(quantities, notes) {
   return lines.join(', ');
 }
 
+function renderOrderProductsTable() {
+  const tbody = document.getElementById('orderProductsBody');
+  if (!tbody || tbody.children.length) return;
+
+  const row = document.createElement('tr');
+  ORDER_PRODUCTS.forEach((p) => {
+    const cell = document.createElement('td');
+    cell.className = 'order-product-cell';
+    cell.dataset.productId = p.id;
+    cell.innerHTML = `
+      <figure class="order-product-card">
+        <img class="order-product-img" src="${sanitizeUrl(p.image)}" alt="${escapeHtml(p.name)}" width="88" height="70" loading="lazy" decoding="async">
+        <figcaption class="order-product-name">${escapeHtml(p.name)}</figcaption>
+        <div class="order-product-qty">
+          <button type="button" class="order-qty-btn" data-dec="${p.id}" aria-label="Remove one ${escapeHtml(p.name)}">−</button>
+          <span data-qty>0</span>
+          <button type="button" class="order-qty-btn" data-inc="${p.id}" aria-label="Add one ${escapeHtml(p.name)}">+</button>
+        </div>
+      </figure>
+    `;
+    row.appendChild(cell);
+  });
+  tbody.appendChild(row);
+}
+
 function initCreateOrder() {
   const toggleBtn = document.getElementById('createOrderBtn');
   const panel = document.getElementById('orderPanel');
   const form = document.getElementById('orderForm');
-  const productGrid = document.getElementById('orderProductGrid');
+  const productsBody = document.getElementById('orderProductsBody');
   if (!toggleBtn || !panel || !form) return;
 
   const itemsInput = document.getElementById('orderItems');
@@ -1097,15 +1117,14 @@ function initCreateOrder() {
     cartSummary.classList.remove('hidden');
   };
 
-  const refreshProductGrid = () => {
-    if (!productGrid) return;
-    productGrid.querySelectorAll('[data-product-id]').forEach(card => {
-      const id = card.dataset.productId;
+  const refreshProductTable = () => {
+    if (!productsBody) return;
+    productsBody.querySelectorAll('[data-product-id]').forEach((cell) => {
+      const id = cell.dataset.productId;
       const qty = quantities[id] || 0;
-      const qtyEl = card.querySelector('[data-qty]');
+      const qtyEl = cell.querySelector('[data-qty]');
       if (qtyEl) qtyEl.textContent = String(qty);
-      card.classList.toggle('is-selected', qty > 0);
-      card.setAttribute('aria-pressed', qty > 0 ? 'true' : 'false');
+      cell.classList.toggle('is-selected', qty > 0);
     });
   };
 
@@ -1124,38 +1143,22 @@ function initCreateOrder() {
     quantities[productId] = next;
     syncItemsField();
     updateCartSummary();
-    refreshProductGrid();
+    refreshProductTable();
     persistDraft();
   };
 
-  if (productGrid) {
-    productGrid.innerHTML = ORDER_PRODUCTS.map(p => `
-      <div class="order-product" role="listitem" data-product-id="${p.id}">
-        <button type="button" class="order-product-add" data-add="${p.id}" aria-label="Add ${escapeHtml(p.name)}">
-          <img src="${sanitizeUrl(p.image)}" alt="" width="72" height="72" loading="lazy" decoding="async">
-          <span class="order-product-name">${escapeHtml(p.name)}</span>
-        </button>
-        <div class="order-product-qty" aria-hidden="true">
-          <button type="button" class="order-qty-btn" data-dec="${p.id}" aria-label="Remove one ${escapeHtml(p.name)}">−</button>
-          <span data-qty>0</span>
-          <button type="button" class="order-qty-btn" data-inc="${p.id}" aria-label="Add one ${escapeHtml(p.name)}">+</button>
-        </div>
-      </div>
-    `).join('');
+  renderOrderProductsTable();
 
-    productGrid.addEventListener('click', (e) => {
-      const addBtn = e.target.closest('[data-add]');
-      const incBtn = e.target.closest('[data-inc]');
-      const decBtn = e.target.closest('[data-dec]');
-      if (addBtn) changeQty(addBtn.dataset.add, 1);
-      else if (incBtn) changeQty(incBtn.dataset.inc, 1);
-      else if (decBtn) changeQty(decBtn.dataset.dec, -1);
-    });
-  }
+  productsBody?.addEventListener('click', (e) => {
+    const incBtn = e.target.closest('[data-inc]');
+    const decBtn = e.target.closest('[data-dec]');
+    if (incBtn) changeQty(incBtn.dataset.inc, 1);
+    else if (decBtn) changeQty(decBtn.dataset.dec, -1);
+  });
 
   syncItemsField();
   updateCartSummary();
-  refreshProductGrid();
+  refreshProductTable();
 
   [notesInput, nameInput, contactInput].forEach(el => {
     el?.addEventListener('input', () => {
@@ -1221,7 +1224,7 @@ function initCreateOrder() {
         form.reset();
         syncItemsField();
         updateCartSummary();
-        refreshProductGrid();
+        refreshProductTable();
         if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof gsap !== 'undefined') {
           gsap.from(messageEl, { opacity: 0, y: 8, duration: 0.4 });
         }
