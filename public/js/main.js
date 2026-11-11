@@ -2,6 +2,29 @@ gsap.registerPlugin(ScrollTrigger);
 
 const ORDER_CART_KEY = 'caffeine_order_cart';
 
+const ORDER_PRODUCTS = [
+  {
+    id: 'latte',
+    name: 'House Latte',
+    image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'americano',
+    name: 'Americano',
+    image: 'https://images.unsplash.com/photo-1514434751398-939a6d66b3d0?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'croissant',
+    name: 'Butter Croissant',
+    image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 'cold-brew',
+    name: 'Cold Brew',
+    image: 'https://images.unsplash.com/photo-1517701603999-d9cfa4b0a3c4?auto=format&fit=crop&w=400&q=80'
+  }
+];
+
 const IMAGE_FALLBACKS = {
   hero: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1920&q=85',
   specialty: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1200&q=85',
@@ -967,18 +990,44 @@ function initMobileMenu() {
 }
 
 /* ---- Pickup order (footer) ---- */
+function defaultOrderQuantities() {
+  return Object.fromEntries(ORDER_PRODUCTS.map(p => [p.id, 0]));
+}
+
 function readOrderCart() {
   try {
     const raw = localStorage.getItem(ORDER_CART_KEY);
-    if (!raw) return { items: '', contact: '', name: '' };
+    const base = {
+      quantities: defaultOrderQuantities(),
+      notes: '',
+      contact: '',
+      name: ''
+    };
+    if (!raw) return base;
     const parsed = JSON.parse(raw);
+    const quantities = { ...base.quantities };
+    if (parsed.quantities && typeof parsed.quantities === 'object') {
+      ORDER_PRODUCTS.forEach(p => {
+        const n = parseInt(parsed.quantities[p.id], 10);
+        if (Number.isFinite(n) && n > 0) quantities[p.id] = Math.min(n, 99);
+      });
+    } else if (typeof parsed.items === 'string' && parsed.items) {
+      /* legacy draft: keep as notes hint only */
+      base.notes = parsed.items;
+    }
     return {
-      items: typeof parsed.items === 'string' ? parsed.items : '',
+      quantities,
+      notes: typeof parsed.notes === 'string' ? parsed.notes : (typeof parsed.items === 'string' ? parsed.items : ''),
       contact: typeof parsed.contact === 'string' ? parsed.contact : '',
       name: typeof parsed.name === 'string' ? parsed.name : ''
     };
   } catch {
-    return { items: '', contact: '', name: '' };
+    return {
+      quantities: defaultOrderQuantities(),
+      notes: '',
+      contact: '',
+      name: ''
+    };
   }
 }
 
@@ -994,33 +1043,125 @@ function clearOrderCart() {
   } catch { /* ignore */ }
 }
 
+function orderLinesFromQuantities(quantities) {
+  return ORDER_PRODUCTS
+    .filter(p => (quantities[p.id] || 0) > 0)
+    .map(p => `${quantities[p.id]}× ${p.name}`);
+}
+
+function buildOrderItemsText(quantities, notes) {
+  const lines = orderLinesFromQuantities(quantities);
+  const trimmedNotes = (notes || '').trim();
+  if (!lines.length && trimmedNotes) return trimmedNotes;
+  if (lines.length && trimmedNotes) return `${lines.join(', ')} — ${trimmedNotes}`;
+  return lines.join(', ');
+}
+
 function initCreateOrder() {
   const toggleBtn = document.getElementById('createOrderBtn');
   const panel = document.getElementById('orderPanel');
   const form = document.getElementById('orderForm');
+  const productGrid = document.getElementById('orderProductGrid');
   if (!toggleBtn || !panel || !form) return;
 
   const itemsInput = document.getElementById('orderItems');
+  const notesInput = document.getElementById('orderNotes');
   const nameInput = document.getElementById('orderName');
   const contactInput = document.getElementById('orderContact');
+  const cartSummary = document.getElementById('orderCartSummary');
   const messageEl = document.getElementById('orderMessage');
   const submitBtn = document.getElementById('orderSubmitBtn');
 
   const draft = readOrderCart();
-  if (itemsInput && draft.items) itemsInput.value = draft.items;
+  let quantities = { ...draft.quantities };
+
+  if (notesInput && draft.notes) notesInput.value = draft.notes;
   if (nameInput && draft.name) nameInput.value = draft.name;
   if (contactInput && draft.contact) contactInput.value = draft.contact;
 
+  const syncItemsField = () => {
+    const text = buildOrderItemsText(quantities, notesInput?.value || '');
+    if (itemsInput) itemsInput.value = text;
+    return text;
+  };
+
+  const updateCartSummary = () => {
+    const lines = orderLinesFromQuantities(quantities);
+    if (!cartSummary) return;
+    if (!lines.length) {
+      cartSummary.textContent = '';
+      cartSummary.classList.add('hidden');
+      return;
+    }
+    cartSummary.textContent = lines.join(' · ');
+    cartSummary.classList.remove('hidden');
+  };
+
+  const refreshProductGrid = () => {
+    if (!productGrid) return;
+    productGrid.querySelectorAll('[data-product-id]').forEach(card => {
+      const id = card.dataset.productId;
+      const qty = quantities[id] || 0;
+      const qtyEl = card.querySelector('[data-qty]');
+      if (qtyEl) qtyEl.textContent = String(qty);
+      card.classList.toggle('is-selected', qty > 0);
+      card.setAttribute('aria-pressed', qty > 0 ? 'true' : 'false');
+    });
+  };
+
   const persistDraft = () => {
+    syncItemsField();
     writeOrderCart({
-      items: itemsInput?.value.trim() || '',
+      quantities,
+      notes: notesInput?.value.trim() || '',
       name: nameInput?.value.trim() || '',
       contact: contactInput?.value.trim() || ''
     });
   };
 
-  [itemsInput, nameInput, contactInput].forEach(el => {
-    el?.addEventListener('input', persistDraft);
+  const changeQty = (productId, delta) => {
+    const next = Math.max(0, Math.min(99, (quantities[productId] || 0) + delta));
+    quantities[productId] = next;
+    syncItemsField();
+    updateCartSummary();
+    refreshProductGrid();
+    persistDraft();
+  };
+
+  if (productGrid) {
+    productGrid.innerHTML = ORDER_PRODUCTS.map(p => `
+      <div class="order-product" role="listitem" data-product-id="${p.id}">
+        <button type="button" class="order-product-add" data-add="${p.id}" aria-label="Add ${escapeHtml(p.name)}">
+          <img src="${sanitizeUrl(p.image)}" alt="" width="72" height="72" loading="lazy" decoding="async">
+          <span class="order-product-name">${escapeHtml(p.name)}</span>
+        </button>
+        <div class="order-product-qty" aria-hidden="true">
+          <button type="button" class="order-qty-btn" data-dec="${p.id}" aria-label="Remove one ${escapeHtml(p.name)}">−</button>
+          <span data-qty>0</span>
+          <button type="button" class="order-qty-btn" data-inc="${p.id}" aria-label="Add one ${escapeHtml(p.name)}">+</button>
+        </div>
+      </div>
+    `).join('');
+
+    productGrid.addEventListener('click', (e) => {
+      const addBtn = e.target.closest('[data-add]');
+      const incBtn = e.target.closest('[data-inc]');
+      const decBtn = e.target.closest('[data-dec]');
+      if (addBtn) changeQty(addBtn.dataset.add, 1);
+      else if (incBtn) changeQty(incBtn.dataset.inc, 1);
+      else if (decBtn) changeQty(decBtn.dataset.dec, -1);
+    });
+  }
+
+  syncItemsField();
+  updateCartSummary();
+  refreshProductGrid();
+
+  [notesInput, nameInput, contactInput].forEach(el => {
+    el?.addEventListener('input', () => {
+      syncItemsField();
+      persistDraft();
+    });
   });
 
   const setPanelOpen = (open) => {
@@ -1031,10 +1172,7 @@ function initCreateOrder() {
     toggleBtn.setAttribute('aria-label', open ? 'Close order form' : 'Create order');
     if (open) {
       panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      window.setTimeout(() => {
-        if (itemsInput && !itemsInput.value.trim()) itemsInput.focus();
-        else contactInput?.focus();
-      }, 400);
+      window.setTimeout(() => contactInput?.focus(), 350);
     }
   };
 
@@ -1050,11 +1188,16 @@ function initCreateOrder() {
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const items = itemsInput?.value.trim() || '';
+    const items = syncItemsField();
     const contact = contactInput?.value.trim() || '';
     const name = nameInput?.value.trim() || '';
 
-    if (!items || !contact) return;
+    if (!items || !contact) {
+      messageEl?.classList.remove('hidden', 'success');
+      messageEl?.classList.add('error');
+      messageEl.textContent = !items ? 'Add at least one item.' : 'Email or phone is required.';
+      return;
+    }
 
     submitBtn.disabled = true;
     submitBtn.querySelector('.btn-text')?.classList.add('hidden');
@@ -1074,7 +1217,11 @@ function initCreateOrder() {
         messageEl?.classList.add('success');
         messageEl.textContent = data.message || 'Order received!';
         clearOrderCart();
+        quantities = defaultOrderQuantities();
         form.reset();
+        syncItemsField();
+        updateCartSummary();
+        refreshProductGrid();
         if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof gsap !== 'undefined') {
           gsap.from(messageEl, { opacity: 0, y: 8, duration: 0.4 });
         }

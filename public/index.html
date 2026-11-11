@@ -328,20 +328,26 @@
     </div>
     <div class="container-wide footer-order-panel hidden" id="orderPanel" aria-hidden="true">
       <form class="footer-order-form" id="orderForm" novalidate>
-        <p class="footer-order-lead">Pickup order — we will confirm by email or phone.</p>
+        <p class="footer-order-lead">Pickup · confirm by email or phone</p>
+        <div class="order-product-grid" id="orderProductGrid" role="list" aria-label="Menu items"></div>
+        <p class="order-cart-summary hidden" id="orderCartSummary" aria-live="polite"></p>
         <label class="visually-hidden" for="orderItems">Order items</label>
         <textarea
           id="orderItems"
           name="items"
-          rows="2"
+          class="visually-hidden"
+          rows="1"
           required
-          placeholder="What would you like? (e.g. 2 lattes, 1 croissant)"
+          tabindex="-1"
+          aria-hidden="true"
         ></textarea>
+        <label class="visually-hidden" for="orderNotes">Extra notes</label>
+        <input type="text" id="orderNotes" name="notes" placeholder="Notes (optional)" autocomplete="off">
         <span class="visually-hidden" id="orderNameLabel">Your name</span>
-        <input type="text" id="orderName" name="name" placeholder="Name (optional)" autocomplete="name" aria-labelledby="orderNameLabel">
+        <input type="text" id="orderName" name="name" placeholder="Name" autocomplete="name" aria-labelledby="orderNameLabel">
         <label class="visually-hidden" for="orderContact">Email or phone</label>
         <input type="text" id="orderContact" name="contact" required placeholder="Email or phone" autocomplete="email">
-        <button type="submit" class="btn btn-fill" id="orderSubmitBtn">
+        <button type="submit" class="btn btn-fill footer-order-submit" id="orderSubmitBtn">
           <span class="btn-text">Submit order</span>
           <span class="btn-loader hidden"></span>
         </button>
